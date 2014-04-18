@@ -1,0 +1,6 @@
+ctd_conversion.csv:
+	CTD data with "END_DATE, LAT, LON, TEMP, DEAR, TEMP_VALS" columns derived from original data file.
+gps_conversion.csv:
+	GPS data with "D_DATE, LAT, LON" columns derived from original data file.
+obs_position.py:
+	Plot all the observations of CTD and GPS.
