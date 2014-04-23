@@ -43,6 +43,7 @@ def np_datetime(m):
         second = int(i[-2:])
         temp = datetime(year,month,day,hour=hour,minute=minute,second=second)
         dt.append(temp)
+    dt = np.array(dt)
     return dt
 def angle_conversion(a):
     a = np.array(a)
@@ -54,6 +55,7 @@ def dist(lon1, lat1, lon2, lat2):
     lon2, lat2 = angle_conversion(lon2), angle_conversion(lat2)
     l = R*np.arccos(np.cos(lat1)*np.cos(lat2)*np.cos(lon1-lon2)+
                     np.sin(lat1)*np.sin(lat2))
+    return l
 ctd = pd.read_csv('ctd_conversion.csv', index_col=0)
 ctdlat = ctd['LAT']
 ctdlon = ctd['LON']
@@ -64,7 +66,7 @@ gpslon = gps['LON']
 gpstime = np_datetime(gps['D_DATE'])
 lonsize = [np.min(ctdlon), np.max(ctdlon)]
 latsize = [np.min(ctdlat), np.max(ctdlat)]
-
+'''
 fig = plt.figure()
 ax = fig.add_subplot(111)
 draw_basemap(fig, ax, lonsize, latsize)
@@ -73,16 +75,19 @@ ax.plot(ctdlon, ctdlat, 'b.', label='CTD')
 ax.set_title('turtle position')
 plt.legend()
 # plt.show()
-index = []
-i = 0
+'''
+index, i = [], 0
+destination = (gpslat, gpslon)
 for lat, lon, ctdtm in zip(ctdlat, ctdlon, ctdtime):
-    l, = distance((lat,lon), (gpslat,gpslon))
-    # l = dist(lon, lat, gpslon, gpslat)
+    origin = (lat, lon)
+    # l, m = distance(origin, destination)
+    l = dist(lon, lat, gpslon, gpslat)
     p = np.where(l<3)
-    maxtime = ctdtm + timedelta(hours=3)
-    mintime = ctdtm - timedelta(hours=3)
-    if mintime<gpstime[p[0]]<maxtime:
-        index.append(i)
+    if p[0].any():
+        maxtime = np.max(gpstime[p[0]] + timedelta(hours=3))
+        mintime = np.min(gpstime[p[0]] - timedelta(hours=3))
+        if mintime<ctdtm<maxtime:
+            index.append(i)
     i += 1
     print i
 ctd_TF = pd.Series([True]*len(index), index=index)
