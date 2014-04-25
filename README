@@ -2,5 +2,11 @@ ctd_conversion.csv:
 	CTD data with "END_DATE, LAT, LON, TEMP, DEAR, TEMP_VALS" columns derived from original data file.
 gps_conversion.csv:
 	GPS data with "D_DATE, LAT, LON" columns derived from original data file.
-obs_position.py:
-	Plot all the observations of CTD and GPS.
+ctd_v2.csv:
+	ctd data with TF column
+ctd_extract_TF.py
+	Plot ctd area and get the ctd data that meet specific demand, write into 'ctd_v2.csv'
+roms_ctd_gps.py:
+	Plot both ctd and roms area.
+obsVSmodel.py:
+	Draw a figure that use ctd temp as x axis, roms temp as y axis.
