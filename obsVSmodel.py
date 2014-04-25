@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append('../moj')
 import jata
+import utilities
 from matplotlib import path
 class water(object):
     def __init__(self, startpoint):
@@ -196,6 +197,7 @@ class water_roms(water):
             except Exception:
                 t.append(0)
                 continue
+        t = np.array(t)
         return t
     def __watertemp(self, lon, lat, lons, lats, depth, time, data):
         '''
@@ -237,22 +239,53 @@ def mean_value(v):
         v_mean = np.mean(val)
         v_list.append(v_mean)
     return v_list
-ctd = pd.read_csv('ctd_v2.csv')
+def bottom_value(v):
+    v_list = []
+    for i in v:
+        l = i.split(',')
+        val = float(l[-1])
+        v_list.append(val)
+    v_list = np.array(v_list)
+    return v_list
+def index_lv(v, n):
+    index = [[]]*n
+    minv = np.min(v)
+    maxv = np.max(v)+0.1
+    m = (maxv - minv)/float(n)
+    for i in range(n):
+        minvv = minv + i*m
+        maxvv = minv + (i+1)*m
+        j = 0
+        for val in v:
+            if val>=maxvv and val<minvv:
+                index[i].append(j)
+    index = np.array(index)
+    return index
+ctd = pd.read_csv('ctd_v3.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdlat, ctdlon = ctd['LAT'][tf_index].values, ctd['LON'][tf_index].values
 ctdtime = np_datetime(ctd['END_DATE'][tf_index])
-ctddepth = mean_value(ctd['TEMP_DBAR'][tf_index])
-ctdtemp = mean_value(ctd['TEMP_VALS'][tf_index])
+# ctddepth = mean_value(ctd['TEMP_DBAR'][tf_index])
+ctddepth = ctd['MAX_DBAR'][tf_index].values
+# ctdtemp = mean_value(ctd['TEMP_VALS'][tf_index])
+ctdtemp = bottom_value(ctd['TEMP_VALS'][tf_index])
+ctddata = pd.DataFrame({'depth':ctddepth, 'temp':ctdtemp, 'lon':ctdlon,
+                        'lat':ctdlat, 'time':ctdtime}).sort_index(by='depth')
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013,12 ,13)
 tempobj = water_roms()
 url = tempobj.get_url(starttime, endtime)
-temp = tempobj.watertemp(ctdlon, ctdlat, ctddepth, ctdtime, url)
+# temp = tempobj.watertemp(ctdlon, ctdlat, ctddepth, ctdtime, url)
+temp = tempobj.watertemp(ctddata['lon'].values, ctddata['lat'].values,
+                         ctddata['depth'].values, ctddata['time'].values, url)
 
-figure = plt.figure()
+index = index_lv(ctddata['depth'],10)
+colors = utilities.uniquecolors(10)
+fig = plt.figure()
 ax = fig.add_subplot(111)
-x = np,arange(0.0, 10.0, 0.01)
-ax.plot(temp, ctdtemp, 'b.')
+x = np.arange(0.0, 30.0, 0.01)
+for i in range(10):
+    ax.plot(temp[index[i]], ctdtemp[index[i]], color=colors[i])
 ax.plot(x, x, 'r-')
 plt.show()
