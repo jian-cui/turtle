@@ -48,7 +48,7 @@ plt.plot(unlons, unlats, 'b.')
 uselons = lons[~u.mask]         # reverse the boolean value
 uselats = lats[~u.mask]
 plt.plot(uselons, uselats, 'r.')
-plt.plot(ctdlon, ctdlat, 'y.', label="CTD")
+# plt.plot(ctdlon, ctdlat, 'y.', label="CTD")
 plt.plot(gpslon, gpslat, 'g.', label="GPS")
 # fig.savefig('roms area', dpi=500)
 plt.legend()
