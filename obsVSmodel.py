@@ -102,6 +102,11 @@ class water(object):
         indx = [i[mindist] for i in index]
         return indx, dist[mindist]
         '''
+    def nearest_point_index2(self, lon, lat, lons, lats):
+        d = dist(lon, lat, lons ,lats)
+        min_dist = np.min(d)
+        index = np.where(d==min_dist)
+        return index
 class water_roms(water):
     '''
     ####(2009.10.11, 2013.05.19):version1(old) 2009-2013
@@ -190,6 +195,10 @@ class water_roms(water):
         temp = data['temp']
         t = []
         for i in range(len(time)):
+            print i
+            watertemp = self.__watertemp(lon[i], lat[i], lons, lats, depth[i], time[i], data)
+            t.append(watertemp)
+            '''
             try:
                 print i, lon[i], lat[i], depth[i], time[i]
                 watertemp = self.__watertemp(lon[i], lat[i], lons, lats, depth[i], time[i], data)
@@ -197,19 +206,31 @@ class water_roms(water):
             except Exception:
                 t.append(0)
                 continue
+            '''
         t = np.array(t)
         return t
     def __watertemp(self, lon, lat, lons, lats, depth, time, data):
         '''
         return temp
         '''
-        index, nearestdistance = self.nearest_point_index(lon,lat,lons,lats,num=1)
+        index = self.nearest_point_index2(lon,lat,lons,lats)
+        print index
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
-        layer = np.argmin(abs(depth_layers-depth))
+        layer = np.argmin(abs(depth_layers+depth)) # Be carefil, all depth_layers are negative numbers
         time_index = self.__closest_num((time-datetime(2006,01,01)).total_seconds(),self.oceantime) - \
             self.index1
         temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
         return temp
+def angle_conversion(a):
+    a = np.array(a)
+    return a/180*np.pi
+def dist(lon1, lat1, lon2, lat2):
+    R = 6371.004
+    lon1, lat1 = angle_conversion(lon1), angle_conversion(lat1)
+    lon2, lat2 = angle_conversion(lon2), angle_conversion(lat2)
+    l = R*np.arccos(np.cos(lat1)*np.cos(lat2)*np.cos(lon1-lon2)+\
+                        np.sin(lat1)*np.sin(lat2))
+    return l
 def mon_alpha2num(m):
     month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     if m in month:
@@ -248,10 +269,16 @@ def bottom_value(v):
     v_list = np.array(v_list)
     return v_list
 def index_lv(v, n):
-    index = [[]]*n
+    '''
+    return a dict
+    '''
+    index = {}
+    for i in range(n):
+        index[i] = []
     minv = np.min(v)
     maxv = np.max(v)+0.1
     m = (maxv - minv)/float(n)
+    '''
     for i in range(n):
         minvv = minv + i*m
         maxvv = minv + (i+1)*m
@@ -261,6 +288,16 @@ def index_lv(v, n):
                 index[i].append(j)
     index = np.array(index)
     return index
+    '''
+    for i in range(len(v)):
+        j = int((v.values[i] - minv)/m) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        index[j].append(v.index[i])
+    return index
+def index_by_depth(v, depth):
+    i = {}
+    i[0] = v[v<depth].index
+    i[1] = v[v>=depth].index
+    return i
 ctd = pd.read_csv('ctd_v3.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdlat, ctdlon = ctd['LAT'][tf_index].values, ctd['LON'][tf_index].values
@@ -279,13 +316,24 @@ url = tempobj.get_url(starttime, endtime)
 # temp = tempobj.watertemp(ctdlon, ctdlat, ctddepth, ctdtime, url)
 temp = tempobj.watertemp(ctddata['lon'].values, ctddata['lat'].values,
                          ctddata['depth'].values, ctddata['time'].values, url)
+temp = pd.Series(temp, index = ctddata['temp'].index)
 
-index = index_lv(ctddata['depth'],10)
+index = index_by_depth(ctddata['depth'], 40)
+# index = index_lv(ctddata['depth'], 10) # ERROR!!!!!!!!!!!!!!!!!
 colors = utilities.uniquecolors(10)
 fig = plt.figure()
 ax = fig.add_subplot(111)
 x = np.arange(0.0, 30.0, 0.01)
+'''
 for i in range(10):
-    ax.plot(temp[index[i]], ctdtemp[index[i]], color=colors[i])
+    # ax.plot(temp[index[i]], ctdtemp[index[i]], '.', color=colors[i], label='{0}'.format(i))
+    ax.scatter(temp[index[i]], ctddata['temp'][index[i]], s=50, c=colors[i], label='{0}'.format(i))
+'''
+ax.scatter(temp[index[0]], ctddata['temp'][index[0]], s=50, c='b', label='<40')
+ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=40')
 ax.plot(x, x, 'r-')
+plt.axis([0, 30, 0, 30])
+plt.xlabel('Model temp')
+plt.ylabel('CTD temp')
+plt.legend()
 plt.show()
