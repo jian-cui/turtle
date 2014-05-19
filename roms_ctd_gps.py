@@ -22,12 +22,20 @@ def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
     dmap.fillcontinents(color='grey')
     dmap.drawmapboundary()
 
+ctdo = pd.read_csv('2014_04_16_rawctd.csv')
+ctdolat = ctdo['LAT']
+ctdolon = ctdo['LON']
 ctd = pd.read_csv('ctd_v2.csv', index_col=0)
 ctdlat = ctd['LAT']
 ctdlon = ctd['LON']
-gps = pd.read_csv('gps_conversion.csv')
-gpslat = gps['LAT']
-gpslon = gps['LON']
+# gps = pd.read_csv('gps_conversion.csv')
+gps = pd.read_csv('2014_04_16_rawgps.csv')
+gpsv = gps['V_MASK']
+gpslat = gps['LAT'][gpsv!=20]
+gpslon = gps['LON'][gpsv!=20]
+diag = pd.read_csv('2014_04_16_rawdiag.csv')
+diaglat = diag['LAT']
+diaglon = diag['LON']
 # lonsize = [np.min(ctdlon), np.max(ctdlon)]
 # latsize = [np.min(ctdlat), np.max(ctdlat)]
 
@@ -35,21 +43,22 @@ url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/hi
 data = netCDF4.Dataset(url)
 lons, lats = data.variables['lon_rho'][:], data.variables['lat_rho'][:]
 u, v = data.variables['u'][-1, 0, :, :], data.variables['v'][-1, 0, :, :]
-lonsize = [np.amin(lons), np.amax(lons)]
-latsize = [np.amin(lats), np.amax(lats)]
+lonsize = [np.amin(gpslon), np.amax(gpslon)]
+latsize = [np.amin(gpslat), np.amax(gpslat)]
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-draw_basemap(fig, ax, lonsize, latsize)
+draw_basemap(fig, ax, lonsize, latsize, interval_lon=1, interval_lat=1)
 unlons = lons[u.mask]
 unlats = lats[u.mask]
-plt.plot(unlons, unlats, 'b.')
+# plt.plot(unlons, unlats, 'b.')
 
-uselons = lons[~u.mask]         # reverse the boolean value
-uselats = lats[~u.mask]
-plt.plot(uselons, uselats, 'r.')
+romslons = lons[~u.mask]         # reverse the boolean value
+romslats = lats[~u.mask]
+# plt.plot(romslons, romslats, 'r.')
 # plt.plot(ctdlon, ctdlat, 'y.', label="CTD")
 plt.plot(gpslon, gpslat, 'g.', label="GPS")
+# plt.plot(ctdolon, ctdolat, 'b.', label="CTD_original")
 # fig.savefig('roms area', dpi=500)
 plt.legend()
 plt.show()
