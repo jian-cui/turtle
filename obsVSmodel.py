@@ -216,7 +216,7 @@ class water_roms(water):
         index = self.nearest_point_index2(lon,lat,lons,lats)
         print index
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
-        layer = np.argmin(abs(depth_layers+depth)) # Be carefil, all depth_layers are negative numbers
+        layer = np.argmin(abs(depth_layers+depth)) # Be careful, all depth_layers are negative numbers
         time_index = self.__closest_num((time-datetime(2006,01,01)).total_seconds(),self.oceantime) - \
             self.index1
         temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
@@ -318,7 +318,7 @@ temp = tempobj.watertemp(ctddata['lon'].values, ctddata['lat'].values,
                          ctddata['depth'].values, ctddata['time'].values, url)
 temp = pd.Series(temp, index = ctddata['temp'].index)
 
-index = index_by_depth(ctddata['depth'], 40)
+index = index_by_depth(ctddata['depth'], 45)
 # index = index_lv(ctddata['depth'], 10) # ERROR!!!!!!!!!!!!!!!!!
 colors = utilities.uniquecolors(10)
 fig = plt.figure()
@@ -329,11 +329,17 @@ for i in range(10):
     # ax.plot(temp[index[i]], ctdtemp[index[i]], '.', color=colors[i], label='{0}'.format(i))
     ax.scatter(temp[index[i]], ctddata['temp'][index[i]], s=50, c=colors[i], label='{0}'.format(i))
 '''
-ax.scatter(temp[index[0]], ctddata['temp'][index[0]], s=50, c='b', label='<40')
-ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=40')
+# ax.scatter(temp[index[0]], ctddata['temp'][index[0]], s=50, c='b', label='<45')
+# ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=45')
+ax.scatter(temp, ctddata['temp'], s=50, c='b')
 ax.plot(x, x, 'r-')
 plt.axis([0, 30, 0, 30])
 plt.xlabel('Model temp')
 plt.ylabel('CTD temp')
-plt.legend()
+
+i = temp[temp.isnull()==False].index
+fit = np.polyfit(temp[i], ctddata['temp'][i], 1)
+fit_fn = np.poly1d(fit)
+plot(temp[i], fit_fn(temp[i]),'y--')
+# gradient, intercept, r_value, p_value, std_err = stats.linregress(obs, mod)
 plt.show()
