@@ -1,0 +1,44 @@
+<html>
+<head>
+<title>Turtle Progress</title>
+<style type="text/css">
+img {width:800px;}
+</style>
+</head>
+
+<body>
+<h1 align="center">Turtle Progress</h1>
+<h2>Plot CTD Positions</h2>
+<p>Draw ctd points.(roms_ctd_gps.py)</p>
+<p>Gold points are CTD stations that has good GPS fixes within 3km and 3hours.The rectangular is the Rutgers Espresso model grid.<br/>
+<img src="./img/ctd_roms_position.png" alt="ctd_roms_position.png"/><br/>
+Below is original CTD data: <br/>
+<img src="./img/CTD_turtle_position.png" alt="CTD_turtle_position.png"/>
+</p>
+<h2>Plot GPS Position</h2>
+<p>Draw gps points.(roms_ctd_gps.py)</p>
+<p>Below is GPS fixes:<br/>
+<img src="./img/gps_roms_position2.png" alt="gps_roms_position2.png"/>
+</p>
+<h2>Plot Diag Position</h2>
+<p>Draw diag points</p>
+<img src="./img/diag_position.png" alt="diag_position.png"/>
+<!--
+<h2>Plot Profiles</h2>
+<p>The example of shallow and deep temperature profile. (shallow_deep.py)<br/>
+Note the differences of X & Y-axis scales and the fact that the model is warmer especially in deep water.</p>
+<img src="./img/shallow_deep.png" alt="shallow_deep.png"/>
+-->
+<h2>Mod VS obs</h2>
+<p>Compare ctd temperature and model temperature(obsVSmodel.py)</p>
+<img src="./img/obsVSmodel2.png" alt="obsVSmodel2.png"/>
+<img src="./img/obsVSmodel3.png" alt="obsVSmodel3.png"/>
+<h2>Test space&time diff</h2>
+<p>If there are points surrounding one CTD point in GPS data, and the GPS data time are around 3 hours of it, this point is good.(ctd_extract_TF.py)</p>
+<p>Add a new column that values are "True" or NaN, "Ture" means it's OK.</p>
+<!--
+<h2>Use 'diag' file to eliminate bad fixes</h2>
+<p>If the "END_DATE" in ctd file is between "deployed" and "endthresh" of "diag" file, then it's good.(eliminate_by_diag.py)</p>
+-->
+</body>
+</html>
