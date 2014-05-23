@@ -6,9 +6,11 @@ ctd_v2.csv:
 	ctd data with TF column
 ctd_extract_TF.py
 	Plot ctd area and get the ctd data that meet specific demand, write into 'ctd_v2.csv'
-roms_ctd_gps.py:
+dataMap.py:
 	Plot ctd, roms and gps area.
 obsVSmodel.py:
 	Draw a figure that use ctd temp as x axis, roms temp as y axis.
 shallow_deep.py:
-	Plot the temp change as depth.
+	Plot the temp change as depth. UNNECESSARY anymore.
+index.html:
+        Explanation of what has been done in turtle project.

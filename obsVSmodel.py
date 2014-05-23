@@ -8,6 +8,7 @@ sys.path.append('../moj')
 import jata
 import utilities
 from matplotlib import path
+from scipy import stats
 class water(object):
     def __init__(self, startpoint):
         '''
@@ -298,7 +299,9 @@ def index_by_depth(v, depth):
     i[0] = v[v<depth].index
     i[1] = v[v>=depth].index
     return i
-ctd = pd.read_csv('ctd_v3.csv')
+FONTSIZE = 25
+# ctd = pd.read_csv('ctd_extract_TF.csv')
+ctd = pd.read_csv('ctd_extract_good.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdlat, ctdlon = ctd['LAT'][tf_index].values, ctd['LON'][tf_index].values
 ctdtime = np_datetime(ctd['END_DATE'][tf_index])
@@ -333,13 +336,15 @@ for i in range(10):
 # ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=45')
 ax.scatter(temp, ctddata['temp'], s=50, c='b')
 ax.plot(x, x, 'r-')
-plt.axis([0, 30, 0, 30])
-plt.xlabel('Model temp')
-plt.ylabel('CTD temp')
+plt.axis([0, 30, 0, 30], fontsize=15)
+plt.xlabel('Model temp', fontsize=FONTSIZE)
+plt.ylabel('CTD temp', fontsize=FONTSIZE)
 
 i = temp[temp.isnull()==False].index
 fit = np.polyfit(temp[i], ctddata['temp'][i], 1)
 fit_fn = np.poly1d(fit)
-plot(temp[i], fit_fn(temp[i]),'y--')
-# gradient, intercept, r_value, p_value, std_err = stats.linregress(obs, mod)
+plt.plot(temp[i], fit_fn(temp[i]),'y--')
+gradient, intercept, r_value, p_value, std_err = stats.linregress(ctddata['temp'][i], temp[i])
+r_squared = r_value**2
+ax.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
 plt.show()

@@ -57,12 +57,12 @@ def dist(lon1, lat1, lon2, lat2):
                     np.sin(lat1)*np.sin(lat2))
     return l
 r = 3
-hour =3
-ctd = pd.read_csv('ctd_conversion.csv', index_col=0)
+hour = 3
+ctd = pd.read_csv('2014_04_16_rawctd.csv')
 ctdlat = ctd['LAT']
 ctdlon = ctd['LON']
 ctdtime = np_datetime(ctd['END_DATE'])
-gps = pd.read_csv('gps_conversion.csv', index_col=0)
+gps = pd.read_csv('2014_04_16_rawgps.csv')
 gpslat = gps['LAT']
 gpslon = gps['LON']
 gpstime = np_datetime(gps['D_DATE'])
@@ -98,4 +98,5 @@ ctd['TF'] = ctd_TF
 print ctd
 print '{0} is OK(including "null" lon and lat values.).'.format(len(ctd_TF)/28975.0)
 print '{0} is OK.'.format(len(ctd_TF)/15657.0)
-ctd.to_csv('ctd_v2.csv')
+print("save as 'ctd_extrack_good.csv'")
+ctd.to_csv('ctd_extract_good.csv')
