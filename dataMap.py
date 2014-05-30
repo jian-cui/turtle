@@ -76,7 +76,7 @@ elif option == '5':
     lonGoodDiag, latGoodDiag = diag['LON'][diagV!=20], diag['LAT'][diagV!=20]
     # lonsize = [-81, -62]
     # latsize = [30, 42]
-    lonsize = [np.amin(lonGoodDiag), np.amax(lonGoodDiag)]
+    lonsize = [np.amin(lonGoodDiag), -25]
     latsize = [np.amin(latGoodDiag), np.amax(latGoodDiag)]
     plt.plot(lonGoodDiag, latGoodDiag, 'y.', label='GoodDiag')
     plt.title('GoodDiag Positions Within the Mid-Atlantic Region', fontsize=FONTSIZE)
