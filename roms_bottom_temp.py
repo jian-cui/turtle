@@ -106,7 +106,7 @@ class water(object):
         '''
     def waternode(self, timeperiod, data):
         pass
-class temp(water):
+class tempClass(water):
     def __init__(self):
         pass
     def get_url(self, starttime, endtime):
@@ -118,6 +118,8 @@ class temp(water):
         index2 = self.__closest_num(t2,data_oceantime.variables['ocean_time'][:])
         url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129],ocean_time[{0}:1:{1}]'
         url = url.format(index1, index2)
+        print index1, index2
+        print url
         return url
     def __closest_num(self, num, numlist, i=0):
         '''
@@ -203,38 +205,65 @@ def left_button_down(event):
     ax.plot(dtime, dtemp)
     plt.show()
     '''
-starttime, endtime= datetime(2013,05,19,2), datetime(2013,05,19,10)
-layer = -1
+layer=0
+timeT = []
+tempT = []
+for i in range(31):
+    starttime, endtime =datetime(2013,10,01)+timedelta(days=i), datetime(2013,10,01)+timedelta(hours=i*24+23)
+    print starttime, endtime
+    tempObj = tempClass()
+    tempUrl = tempObj.get_url(starttime, endtime)
+    tempData = tempObj.get_data(tempUrl)
+    lon, lat = tempData['lon_rho'], tempData['lat_rho']
+    temp = tempData['temp']
+    lonsize = np.amin(lon)-0.1, np.amax(lon)+0.1
+    latsize = np.amin(lat)-0.1, np.amax(lat)-0.1
+    for j in range(24):
+        t = starttime + timedelta(hours=j)
+        print t
+        timeT.append(t)
+        tempT.append(temp[j][layer])
+        '''
+        fig = plt.figure()
+        ax = plt.subplot(111)
+        dmap = Basemap(projection = 'cyl',
+                   llcrnrlat = min(latsize)-0.01,
+                   urcrnrlat = max(latsize)+0.01,
+                   llcrnrlon = min(lonsize)-0.01,
+                   urcrnrlon = max(lonsize)+0.01,
+                   resolution = 'h', ax = ax)
+        dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
+                       labels = [1,0,0,0])
+        dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
+                       labels = [0,0,0,1])
+        dmap.drawcoastlines()
+        dmap.fillcontinents(color='grey')
+        dmap.drawmapboundary()
+        cs = plt.contourf(lon, lat, temp[j][layer], extend='both')
+        plt.colorbar()
+        ax.set_title('{0}'.format(t))
+        fig.savefig('./img/temp/{0}'.format(t), dpi=200)
+        '''
+'''
+starttime, endtime= datetime(2013,10,01,00), datetime(2013,10,31,23)
+print starttime, endtime
+layer = 0
 tempObj = temp()
 tempUrl = tempObj.get_url(starttime, endtime)
 tempData = tempObj.get_data(tempUrl)
 lon, lat = tempData['lon_rho'], tempData['lat_rho']
 temp = tempData['temp']
+'''
+l = len(tempT)
 lonsize = np.amin(lon)-0.1, np.amax(lon)+0.1
 latsize = np.amin(lat)-0.1, np.amax(lat)+0.1
-'''
-for i in range(len(tempData['temp'])):
-    fig = plt.figure()
-    ax = plt.subplot(111)
-    dmap = Basemap(projection = 'cyl',
-               llcrnrlat = min(latsize)-0.01,
-               urcrnrlat = max(latsize)+0.01,
-               llcrnrlon = min(lonsize)-0.01,
-               urcrnrlon = max(lonsize)+0.01,
-               resolution = 'h', ax = ax)
-    dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
-                   labels = [1,0,0,0])
-    dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
-                   labels = [0,0,0,1])
-    dmap.drawcoastlines()
-    dmap.fillcontinents(color='grey')
-    dmap.drawmapboundary()
-    cs = plt.contourf(lon, lat, temp[i][layer], extend='both')
-    fig.savefig('temp['+str(i)+']', dpi=200)
-'''
 def animate(n):
-    plt.contourf(lon, lat, temp[n][layer], extend='both')
-    plt.title('roms bottom temp, time: {0}'.format(str(starttime+timedelta(hours=n))))
+    n = 12 + n*24
+    plt.contourf(lon, lat, tempT[n], extend='both')
+    t = timeT[n]
+    plt.title('ROMS bottom temp, time: {0}'.format(t))
+    print t
+    # plt.title('roms bottom temp, time: {0}'.format(str(starttime+timedelta(hours=n))))
     # plt.colorbar()
 fig = plt.figure()
 ax = plt.subplot(111)
@@ -251,8 +280,8 @@ dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
 dmap.drawcoastlines()
 dmap.fillcontinents(color='grey')
 dmap.drawmapboundary()
-plt.contourf(lon, lat, temp[0][layer], extend='both')
+plt.contourf(lon, lat, tempT[0], extend='both')
 plt.title('roms bottom temp, time: {0}'.format(str(starttime+timedelta(hours=0))))
 plt.colorbar()
-anim = animation.FuncAnimation(fig, animate, frames=9, interval=20)
-anim.save("ROMS_BOTTOM_TEMP.mp4")
+anim = animation.FuncAnimation(fig, animate, frames=31, interval=10)
+anim.save("ROMS_BOTTOM_TEMP_1Month.mp4")
