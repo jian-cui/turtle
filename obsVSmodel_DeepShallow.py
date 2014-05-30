@@ -330,7 +330,7 @@ ax1 = fig1.add_subplot(111)
 ax1.scatter(tempModelDeep, tempCTDDeep, s=50, c='b')
 ax1.plot(x, x, 'r-')
 fit1 = np.polyfit(tempModelDeep, tempCTDDeep, 1)
-fit_fn1 = np.poly1d(fit)
+fit_fn1 = np.poly1d(fit1)
 ax1.plot(tempModelDeep, fit_fn1(tempModelDeep), 'y--')
 gradient1, intercept1, r_value1, p_value1, std_err1\
     = stats.linregress(tempCTDDeep, tempModelDeep)
