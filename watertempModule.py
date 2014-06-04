@@ -228,23 +228,26 @@ class waterCTD(water_roms):
         data = self.get_data(url)
         lons = data['lon_rho'][:]
         lats = data['lat_rho'][:]
-        temp = data['temp']
-        t = np.array([])
+        t = []
         for i in range(len(time)):
+            print i, time[i]
             watertemp = self.__watertemp(lon[i], lat[i], lons, lats, depth[i], time[i], data)
-            np.append(t, watertemp)
+            t.append(watertemp)
         return t
     def __watertemp(self, lon, lat, lons, lats, depth, time, data):
         index = self.nearest_point_index2(lon, lat, lons, lats)
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
         t = []
-        depth = depth.split(',')
-        for d in depth:
-            layer = np.argmin(abs(depth_layers + float(d))) # use "float" because depth is a list made of string.
-            time_index = self.closest_num((time-datetime(2006,01,01)).total_seconds(), self.oceantime) -\
+        # depth = depth.split(',')
+        time_index = self.closest_num((time-datetime(2006,01,01)).total_seconds(), self.oceantime) -\
                 self.index1
-            temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
+        tem = data['temp'][time_index]
+        tem[tem.mask] = 10000
+        for dep in depth:
+            layer = np.argmin(abs(depth_layers + dep))
+            temp = tem[layer, index[0][0], index[1][0]]
             t.append(temp)
+            # print time, dep, temp
         return t
 def angle_conversion(a):
     a = np.array(a)
