@@ -17,11 +17,13 @@ def str2float(arg):
         ret.append(b)
     ret = np.array(ret)
     return ret
-def array_2dto1d(arr, i):
-    s = arr[i].shape
-    assert len(s) == 2
-    arr = arr.reshape([s[0]*s[1], ])
-    return arr
+def array_2dto1d(arr):
+    arg = []
+    for i in arr:
+        for j in i:
+            arg.append(j)
+    arg = np.array(arg)
+    return arg
 FONTSIZE = 25
 ctd = pd.read_csv('ctd_extract_good.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
@@ -44,10 +46,10 @@ tempMod = np.array(tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.valu
 tempObsDeep, tempObsShallow = [], []
 tempModDeep, tempModShallow = [], []
 i = ctdMaxDepth.values>50
-tempObsDeep = array_2dto1d(ctdTemp.values, i)
-tempModDeep = array_2dto1d(tempMod, i)
-tempObsShallow = array_2dto1d(ctdTemp.values, ~i)
-tempModShallow = array_2dto1d(tempMod, ~i)
+tempObsDeep = array_2dto1d(ctdTemp.values[i])
+tempModDeep = array_2dto1d(tempMod[i])
+tempObsShallow = array_2dto1d(ctdTemp.values[~i])
+tempModShallow = array_2dto1d(tempMod[~i])
 
 x = np.arange(0, 30, 0.01)
 fig1 = plt.figure()
@@ -56,13 +58,13 @@ ax1.scatter(tempObsDeep, tempModDeep, s=50, c='b')
 ax1.plot(x, x, 'r-')
 fit1 = np.polyfit(tempObsDeep, tempModDeep, 1)
 fit_fn1 = np.poly1d(fit1)
-ax1.plot(tempObsDeep, fit_fn1(tempObsDeep), 'y--')
+ax1.plot(tempObsDeep, fit_fn1(tempObsDeep), 'y-')
 gradient1, intercept1, r_value1, p_value1, std_err1\
     = stats.linregress(tempObsDeep, tempModDeep)
 ax1.set_title('offshove, R-squard: %.4f' % r_value1**2, fontsize=FONTSIZE)
 ax1.set_xlabel('CTD temp', fontsize=FONTSIZE)
 ax1.set_ylabel('Model temp', fontsize=FONTSIZE)
-
+ax1.axis([0, 35, 0,35])
 
 i = np.where(np.array(tempModShallow)<100) #Some of the data is infinity.
 tempObsShallow1 = np.array(tempObsShallow)[i]
@@ -73,10 +75,11 @@ ax2.scatter(tempObsShallow1, tempModShallow1)
 ax2.plot(x, x, 'r-')
 fit2 = np.polyfit(tempObsShallow1, tempModShallow1, 1)
 fit_fn2 = np.poly1d(fit2)
-ax2.plot(tempObsShallow1, fit_fn2(tempObsShallow1), 'y--')
+ax2.plot(tempObsShallow1, fit_fn2(tempObsShallow1), 'y-')
 gradient2, intercept2, r_value2, p_value2, std_err2\
     = stats.linregress(tempObsShallow1, tempModShallow1)
-ax2.set_title('onshorv, R-squard: %.4f' % r_value2**2, fontsize=FONTSIZE)
+ax2.set_title('onshove, R-squard: %.4f' % r_value2**2, fontsize=FONTSIZE)
 ax2.set_xlabel('CTD temp', fontsize=FONTSIZE)
 ax2.set_ylabel('Model temp', fontsize=FONTSIZE)
+ax2.axis([0, 35, 0,35])
 plt.show()
