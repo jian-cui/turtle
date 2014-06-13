@@ -222,17 +222,21 @@ class water_roms(water):
             self.index1
         temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
         return temp
-    def layerTemp(self, lon, lat, depth, url):
+    def layerTemp(self, layer, url):
         '''
         Get the temp of one whole specific layer.
         Only return temperature of the first 'time' index. 
         '''
-        data = self.get_url(url)
-        lons, lats = data['lon_rho'][:], data['lat_rho'][:]
-        index = self.nearest_point_index2(lon, lat, lons, lats)
-        depth_layers = data['h'][index[0][0]][index[1][0]] * data['s_rho']
-        layer = np.argmin(abs(depth_layers + depth))
-        layerTemp = data['temp'][0, layer]
+        data = self.get_data(url)
+        # lons, lats = data['lon_rho'][:], data['lat_rho'][:]
+        # index = self.nearest_point_index2(lon, lat, lons, lats)
+        # depth_layers = data['h'][index[0][0]][index[1][0]] * data['s_rho']
+        # print depth_layers
+        # layer = np.argmin(abs(depth_layers + depth))
+        # layerTemp = data['temp'][0, layer]
+        layerTemp = data['temp'][0, -layer]
+        # depthRange = [depth_layers[-layer-1], depth_layers[-layer]]
+        # depthRange = [depth_layers[layer-1], depth_layers[layer]]
         return layerTemp
 
 class waterCTD(water_roms):
