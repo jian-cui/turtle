@@ -299,6 +299,49 @@ def index_by_depth(v, depth):
     i[0] = v[v<depth].index
     i[1] = v[v>=depth].index
     return i
+def show2pic(x1, y1, fontsize):
+    FONTSIZE = fontsize
+    fig1 = plt.figure()
+    ax1 = fig1.add_subplot(111)
+    x = np.arange(0.0, 30.0, 0.01)
+    '''
+    for i in range(10):
+        # ax.plot(temp[index[i]], ctdtemp[index[i]], '.', color=colors[i], label='{0}'.format(i))
+        ax.scatter(temp[index[i]], ctddata['temp'][index[i]], s=50, c=colors[i], label='{0}'.format(i))
+    '''
+    # ax.scatter(temp[index[0]], ctddata['temp'][index[0]], s=50, c='b', label='<45')
+    # ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=45')
+    ax1.scatter(x1, y1, s=50, c='b')
+    ax1.plot(x, x, 'r-', linewidth=2)
+    plt.axis([0, 30, 0, 30], fontsize=15)
+    plt.xlabel('Model temp', fontsize=FONTSIZE)
+    plt.ylabel('CTD temp', fontsize=FONTSIZE)
+    i = x1[x1.isnull()==False].index
+    fit = np.polyfit(x1[i], y1[i], 1)
+    fit_fn = np.poly1d(fit)
+    x2, y2 = x1[i], fit_fn(x1[i])
+    plt.plot(x2, y2,'y-', linewidth=2)
+    gradient, intercept, r_value, p_value, std_err = stats.linregress(y1[i], x1[i])
+    r_squared = r_value**2
+    # ax1.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+    
+    fig2 = plt.figure()
+    ax2 =  fig2.add_subplot(111)
+    nbins = 200
+    H, xedges, yedges = np.histogram2d(x1[i], y1[i], bins=nbins)
+    H = np.rot90(H)
+    H = np.flipud(H)
+    Hmasked = np.ma.masked_where(H==0, H)
+    plt.pcolormesh(xedges, yedges, Hmasked)
+    plt.xlabel('Model temp', fontsize=FONTSIZE)
+    plt.ylabel('CTD temp', fontsize=FONTSIZE)
+    cbar = plt.colorbar()
+    cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
+    plt.axis([0, 30, 0, 30], fontsize=15)
+    plt.plot(x, x, 'r-', linewidth=2)
+    plt.plot(x2, y2, 'y-', linewidth=2)
+    # plt.title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+    return ax1, ax2, r_squared
 FONTSIZE = 25
 # ctd = pd.read_csv('ctd_extract_TF.csv')
 ctd = pd.read_csv('ctd_extract_good.csv')
@@ -321,30 +364,22 @@ temp = tempobj.watertemp(ctddata['lon'].values, ctddata['lat'].values,
                          ctddata['depth'].values, ctddata['time'].values, url)
 temp = pd.Series(temp, index = ctddata['temp'].index)
 
-index = index_by_depth(ctddata['depth'], 45)
-# index = index_lv(ctddata['depth'], 10) # ERROR!!!!!!!!!!!!!!!!!
-colors = utilities.uniquecolors(10)
-fig = plt.figure()
-ax = fig.add_subplot(111)
-x = np.arange(0.0, 30.0, 0.01)
-'''
-for i in range(10):
-    # ax.plot(temp[index[i]], ctdtemp[index[i]], '.', color=colors[i], label='{0}'.format(i))
-    ax.scatter(temp[index[i]], ctddata['temp'][index[i]], s=50, c=colors[i], label='{0}'.format(i))
-'''
-# ax.scatter(temp[index[0]], ctddata['temp'][index[0]], s=50, c='b', label='<45')
-# ax.scatter(temp[index[1]], ctddata['temp'][index[1]], s=50, c='r', label='>=45')
-ax.scatter(temp, ctddata['temp'], s=50, c='b')
-ax.plot(x, x, 'r-')
-plt.axis([0, 30, 0, 30], fontsize=15)
-plt.xlabel('Model temp', fontsize=FONTSIZE)
-plt.ylabel('CTD temp', fontsize=FONTSIZE)
-
-i = temp[temp.isnull()==False].index
-fit = np.polyfit(temp[i], ctddata['temp'][i], 1)
-fit_fn = np.poly1d(fit)
-plt.plot(temp[i], fit_fn(temp[i]),'y--')
-gradient, intercept, r_value, p_value, std_err = stats.linregress(ctddata['temp'][i], temp[i])
-r_squared = r_value**2
-ax.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+index = index_by_depth(ctddata['depth'], 50)
+# colors = utilities.uniquecolors(10)
+tp='<50'
+if tp == 'all':
+    x1, y1 = temp, ctddata['temp']
+    ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
+    ax1.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+    ax2.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+elif tp == '<50':
+    x1, y1 = temp[index[0]], ctddata['temp'][index[0]]
+    ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
+    ax1.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax2.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+elif tp == '>50':
+    x1, y1 = temp[index[1]], ctddata['temp'][index[1]]
+    ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
+    ax1.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax2.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
 plt.show()
