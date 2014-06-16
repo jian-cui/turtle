@@ -5,14 +5,13 @@ import watertempModule as wtm
 from  watertempModule import np_datetime, bottom_value, dist
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
+from module import str2ndlist
+import netCDF4
 def str2float(arg):
     ret = []
     for i in arg:
-        i = i.split(',')
-        b = np.array([])
-        for j in i:
-            j = float(j)
-            b = np.append(b, j)
+        a = i.split(',')
+        b = [float(j) for j in a]
         ret.append(b)
     ret = np.array(ret)
     return ret
@@ -28,23 +27,66 @@ def pointLayer(lon, lat, lons, lats, vDepth, h, s_rho):
     # layerDepth = [depthLayers[-layer+1], depthLayers[-layer]]
     l = 36 - np.argmin(abs(depthLayers + vDepth))
     return l
+def closest_num(num, numlist, i=0):
+    '''
+    Return index of the closest number in the list
+    '''
+    index1, index2 = 0, len(numlist)
+    indx = int(index2/2)
+    if not numlist[0] < num < numlist[-1]:
+        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
+    if index2 == 2:
+        l1, l2 = num-numlist[0], numlist[-1]-num
+        if l1 < l2:
+            i = i
+        else:
+            i = i+1
+    elif num == numlist[indx]:
+        i = i + indx
+    elif num > numlist[indx]:
+        i = closest_num(num, numlist[indx:],
+                          i=i+indx)
+    elif num < numlist[indx]:
+        i = closest_num(num, numlist[0:indx+1], i=i)
+    return i
+def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNeareastIndex, starttime, oceantime):
+    ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
+    modTemp = []
+    l = len(ctdLayer.index)
+    for i in ctdLayer.index:
+        print i, l
+        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
+        modTempTime = modTempAll[timeIndex]
+        modTempTime[modTempTime.mask] = 10000
+        t = [modTempTime[ctdLayer[i][j]-1,ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
+             for j in range(len(ctdLayer[i]))]
+    modTemp.append(t)
+    modTemp = np.array(modTemp)
+    return modTemp
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_extract_good.csv')
-tf_index = np.where(ctd['TF'].notnull())[0]
-ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
-ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
-ctdTemp = pd.Series(str2float(ctd['TEMP_VALS'][tf_index]), index=tf_index)
+ctdData = pd.read_csv('ctd_good.csv')
+tf_index = np.where(ctdData['TF'].notnull())[0]
+ctdLon, ctdLat = ctdData['LON'][tf_index], ctdData['LAT'][tf_index]
+ctdTime = pd.Series(np_datetime(ctdData['END_DATE'][tf_index]), index=tf_index)
+ctdTemp = pd.Series(str2float(ctdData['TEMP_VALS'][tf_index]), index=tf_index)
 # ctdTemp = pd.Series(bottom_value(ctd['TEMP_VALS'][tf_index]), index=tf_index)
-ctdDepth = pd.Series(str2float(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
+ctdDepth = pd.Series(str2float(ctdData['TEMP_DBAR'][tf_index]), index=tf_index)
+ctdLayer = pd.Series(str2ndlist(ctdData['modDepthLayer'][tf_index],bracket=True), index=tf_index)
+ctdNearestIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-tempMod = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
+# modTemp = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
+modDataAll = tempObj.get_data(url)
+oceantime = modDataAll['ocean_time']
+modTempAll = modDataAll['temp']
+modTemp = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
 
 d = {'lon': ctdLon, 'lat': ctdLat, 'obstemp': ctdTemp.values,
-     'modtemp':tempMod, 'depth': ctdDepth, 'time': ctdTime.values}
+     'modtemp':modTemp, 'depth': ctdDepth, 'time': ctdTime.values,
+     'layer': ctdLayer}
 a = pd.DataFrame(d, index=tf_index)
 '''
 a = pd.read_csv('temp.csv',index_col=0)
@@ -58,7 +100,7 @@ for i in a['']
 ind = [] # the indices needed
 obst = []
 modt = []
-dep = []
+lyr = []
 for i in a.index:
     # obst = []
     # modt = []
@@ -67,17 +109,18 @@ for i in a.index:
         print i, j
         y = a['modtemp'][i][j]
         x = a['obstemp'][i][j]
-        if y > x + 10:
+        if x > y + 10:
             ind.append(i)
             obst.append(x)
             modt.append(y)
-            dep.append(a['depth'][i][j])
+            lyr.append(a['layer'][i][j])
 dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           'lat': a['lat'][ind].values,
                           'time': a['time'][ind].values,
                           'obstemp': np.array(obst),
                           'modtemp': np.array(modt),
-                          'dep': np.array(dep)
+                          'dep': np.array(dep),
+                          'layer': np.array(lyr)
                           })
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
@@ -126,14 +169,15 @@ url = tempObj.get_url(starttime, endtime)
 modData = tempObj.get_data(url)
 h, s_rho = modData['h'], modData['s_rho']
 lons, lats = modData['lon_rho'], modData['lat_rho']
-
+'''
+#get the mod layer. Unusefule after using "ctd_good.csv".
 lyrs = []
 for i in dataFinal.index:
     l = pointLayer(dataFinal['lon'][i],dataFinal['lat'][i], lons, lats, dataFinal['dep'][i], h, s_rho)
     lyrs.append(l)
     print i, l
 dataFinal['layer'] = pd.Series(lyrs, index=dataFinal.index)
-
+'''
 lonsize = np.amin(lons)-0.1, np.amax(lons)+0.1
 latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
 
@@ -229,5 +273,5 @@ plt.barh(x, bar)
 plt.ylim((50, 0))
 plt.ylabel('depth', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
-plt.title('error bar, based on depth',fontsize=25)
+plt.title('error bar, based on depth',fontsize)
 plt.show()
