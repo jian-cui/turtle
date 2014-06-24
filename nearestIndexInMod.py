@@ -59,9 +59,10 @@ layersAll = []
 for i in indexNotNull:
     nearest_index = loc[i]
     layers = []
+    depthLayers = h[nearest_index[0], nearest_index[1]] * s_rho
     for j in range(len(obsDepth[i])):
-        depthLayers = h[nearest_index[0], nearest_index[1]] * s_rho
-        l = 36-np.argmin(abs(depthLayers+obsDepth[i][j]))
+        # depthLayers = h[nearest_index[0], nearest_index[1]] * s_rho
+        l = np.argmin(abs(depthLayers+obsDepth[i][j]))
         layers.append(l)
         print i, j, l
     layersAll.append(layers)

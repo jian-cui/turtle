@@ -157,7 +157,7 @@ class water_roms(water):
         # index1 = (starttime - time_r).total_seconds()/60/60
         # index2 = index1 + self.hours
         # url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?h[0:1:81][0:1:129],s_rho[0:1:35],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129]'
-        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129]'
+        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129],ocean_time'
         url = url.format(self.index1, self.index2)
         return url
     def closest_num(self, num, numlist, i=0):
@@ -187,7 +187,7 @@ class water_roms(water):
         return the data needed.
         url is from water_roms.get_url(starttime, endtime)
         '''
-        data = jata.get_nc_data(url, 'lon_rho', 'lat_rho', 'temp','h','s_rho')
+        data = jata.get_nc_data(url, 'lon_rho', 'lat_rho', 'temp','h','s_rho', 'ocean_time')
         return data
     def watertemp(self, lon, lat, depth, time, url):
         data = self.get_data(url)
@@ -252,6 +252,7 @@ class waterCTD(water_roms):
         return t
     def __watertemp(self, lon, lat, lons, lats, depth, time, data):
         index = self.nearest_point_index2(lon, lat, lons, lats)
+        print 'index: ', index
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
         t = []
         # depth = depth.split(',')
@@ -261,6 +262,7 @@ class waterCTD(water_roms):
         tem[tem.mask] = 10000
         for dep in depth:
             layer = np.argmin(abs(depth_layers + dep))
+            print 'layer: ', layer
             temp = tem[layer, index[0][0], index[1][0]]
             t.append(temp)
             # print time, dep, temp

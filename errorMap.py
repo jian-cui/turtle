@@ -49,7 +49,7 @@ def closest_num(num, numlist, i=0):
     elif num < numlist[indx]:
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
-def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNeareastIndex, starttime, oceantime):
+def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
     ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
     modTemp = []
     l = len(ctdLayer.index)
@@ -60,7 +60,7 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNeareastIndex, starttime, ocean
         modTempTime[modTempTime.mask] = 10000
         t = [modTempTime[ctdLayer[i][j]-1,ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
              for j in range(len(ctdLayer[i]))]
-    modTemp.append(t)
+        modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
 FONTSIZE = 25
@@ -78,7 +78,7 @@ starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-# modTemp = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
+# modTemp1 = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
 modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
@@ -101,6 +101,7 @@ ind = [] # the indices needed
 obst = []
 modt = []
 lyr = []
+dep=[]
 for i in a.index:
     # obst = []
     # modt = []
@@ -109,18 +110,20 @@ for i in a.index:
         print i, j
         y = a['modtemp'][i][j]
         x = a['obstemp'][i][j]
-        if x > y + 10:
+        # if abs(x - y) > 10:
+        if abs(x - y) > 10:          # obstemp-modtemp>10
             ind.append(i)
             obst.append(x)
             modt.append(y)
             lyr.append(a['layer'][i][j])
+            dep.append(a['depth'][i][j])
 dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           'lat': a['lat'][ind].values,
                           'time': a['time'][ind].values,
                           'obstemp': np.array(obst),
                           'modtemp': np.array(modt),
-                          'dep': np.array(dep),
-                          'layer': np.array(lyr)
+                          'layer': np.array(lyr),
+                          'dep': np.array(dep)
                           })
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
@@ -187,8 +190,8 @@ ax = []
 i = 0
 ax.append(plt.subplot(2,2,i+1))
 modLayerTemp = tempObj.layerTemp(layer, url)
-l = layer+i*8
-lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
+l = layer+i*4
+# lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
 a = np.where(dataFinal['layer']==l)[0]
 m = dataFinal['time'][a]>starttime-timedelta(days=10)
 n = dataFinal['time'][a]<starttime+timedelta(days=10)
@@ -216,7 +219,7 @@ ax[i].set_title('Layer: {0}'.format(l))
 for i in range(1, 4):
     ax.append(plt.subplot(2,2,i+1))
     l = layer+i*4
-    lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
+    # lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
     a = np.where(dataFinal['layer']==l)[0]
     m = dataFinal['time'][a]>starttime-timedelta(days=10)
     n = dataFinal['time'][a]<starttime+timedelta(days=10)
@@ -244,8 +247,7 @@ for i in range(1, 4):
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
-plt.suptitle('obsVSmodel, modTemp>obsTemp+10',fontsize=25)
-plt.show()
+plt.suptitle('obsVSmodel, |obstemp-modemp|>10',fontsize=25)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -258,7 +260,7 @@ for i in dataFinal['layer']:
 plt.bar(x, bar)
 plt.xlabel('Layer', fontsize=25)
 plt.ylabel('Quantity', fontsize=25)
-plt.show()
+plt.title('error bar that |obstemp-modtemp|>10, based on layers',fontsize=25)
 
 #draw errorbar based on depth.
 fig = plt.figure()
@@ -273,5 +275,5 @@ plt.barh(x, bar)
 plt.ylim((50, 0))
 plt.ylabel('depth', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
-plt.title('error bar, based on depth',fontsize)
+plt.title('error bar that |obstemp-modtemp|>10, based on depth',fontsize=25)
 plt.show()

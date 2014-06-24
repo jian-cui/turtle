@@ -12,7 +12,7 @@ def str2list(s, bracket=False):
     a = '3,4,5,6'
     b = str2list(a)
     '''
-    if symb:
+    if bracket:
         s = s[1:-1]
     s = s.split(',')
     s = [float(i) for i in s]
@@ -20,7 +20,15 @@ def str2list(s, bracket=False):
 def str2ndlist(arg, bracket=False):
     ret = []
     for i in arg:
+        print i
         a = str2list(i, bracket=bracket)
         ret.append(a)
-    ret = np.array(ret)
+        print i
+    print 'run here'
     return ret
+def histogramPoints(x, y, bins):
+    H, xedges, yedges = np.histogram2d(x, y, bins=bins)
+    H = np.rot90(H)
+    H = np.flipud(H)
+    Hmasked = np.ma.masked_where(H==0, H)
+    return xedges, yedges, Hmasked
