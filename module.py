@@ -20,11 +20,8 @@ def str2list(s, bracket=False):
 def str2ndlist(arg, bracket=False):
     ret = []
     for i in arg:
-        print i
         a = str2list(i, bracket=bracket)
         ret.append(a)
-        print i
-    print 'run here'
     return ret
 def histogramPoints(x, y, bins):
     H, xedges, yedges = np.histogram2d(x, y, bins=bins)
