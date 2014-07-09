@@ -88,15 +88,7 @@ d = {'lon': ctdLon, 'lat': ctdLat, 'obstemp': ctdTemp.values,
      'modtemp':modTemp, 'depth': ctdDepth, 'time': ctdTime.values,
      'layer': ctdLayer}
 a = pd.DataFrame(d, index=tf_index)
-'''
-a = pd.read_csv('temp.csv',index_col=0)
-modTime = []
-for i in a['time']:
-    modTime.append(datetime.strptime(i, '%Y-%m-%d %H:%M:%S'))
-modTime = pd.Series(modTime, index=a.index)
-tDepth = [] 
-for i in a['']
-'''
+
 ind = [] # the indices needed
 obst = []
 modt = []
@@ -110,9 +102,9 @@ for i in a.index:
         print i, j
         y = a['modtemp'][i][j]
         x = a['obstemp'][i][j]
-        # if abs(x - y) > 10:     # |mod-obstemp|>10
-        if y - x > 10:          # modtemp-obstemp>10
-        # if x - y > 10:          # obstemp-modtenp>10
+        # if abs(x - y) > 3:     # |mod-obstemp|>10
+        # if y - x > 10:          # modtemp-obstemp>10
+        if x - y > 10:          # obstemp-modtenp>10
             ind.append(i)
             obst.append(x)
             modt.append(y)
@@ -124,7 +116,8 @@ dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           'obstemp': np.array(obst),
                           'modtemp': np.array(modt),
                           'layer': np.array(lyr),
-                          'dep': np.array(dep)
+                          'dep': np.array(dep),
+                          'nearestIndex': ctdNearestIndex[ind].values
                           })
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
@@ -248,7 +241,7 @@ for i in range(1, 4):
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
-plt.suptitle('obsVSmodel, obsemp-modtemp>10',fontsize=25)
+plt.suptitle('obsVSmodel, obstemp-modtemp>10',fontsize=25)
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -261,6 +254,8 @@ for i in dataFinal['layer']:
 plt.bar(x, bar)
 plt.xlabel('Layer', fontsize=25)
 plt.ylabel('Quantity', fontsize=25)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 plt.title('error bar that obstemp-modtemp>10, based on layers',fontsize=25)
 
 #draw errorbar based on depth.
@@ -273,8 +268,30 @@ for i in y:
     # if i in x:
     bar[int(i)-1] = bar[int(i)-1]+1
 plt.barh(x, bar)
-plt.ylim((50, 0))
+# plt.ylim((250, 0))
 plt.ylabel('depth', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 plt.title('error bar that obstemp-modtemp>10, based on depth',fontsize=25)
+
+modDepth = []
+for i in dataFinal.index:
+    m = dataFinal['nearestIndex'][i]
+    modDepth.append(h[int(m[0]), int(m[1])])
+fig=plt.figure()
+ax = fig.add_subplot(111)
+rate = dataFinal['dep']/modDepth
+x = [0]*50
+y = np.arange(0,5,0.1)
+for i in rate:
+    x[int(i*10)] += 1
+plt.barh(y, x, height=0.08)
+plt.ylim(5, 0)
+plt.yticks(np.arange(0,5,0.1))
+plt.ylabel('obsErrorDep/modH', fontsize=25)
+plt.xlabel('Quantity', fontsize=25)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+plt.title('Ratio of obs error(>10)', fontsize=25)
 plt.show()
