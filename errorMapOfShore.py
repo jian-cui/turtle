@@ -3,8 +3,9 @@ from watertempModule import np_datetime
 import numpy as np
 import matplotlib as mpl
 import pandas as pd
-from module import str2list
+from module import str2ndlist
 from datetime import datetime, timedelta
+
 def closest_num(self, num, numlist, i=0):
     '''
     Return index of the closest number in the list
@@ -31,22 +32,28 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNeareastIndex):
     ind = closest_num(t1, self.oceantime)
     modTemp = []
     for i in ctdLayer.index:
-        timeIndex = cloest_num(ctdTime[i]-datetime(2006,01,01)).total_seconds, oceantime)-ind
+        timeIndex = cloest_num(ctdTime[i]-datetime(2006,01,01).total_seconds, oceantime)-ind
         modTempAll[modTempAll.mask] = 10000
         t = [modTempAll[timeIndex,ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
              for j in range(len(ctdLayer[i]))]
     modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
-    
-FONTSIZE = 25  
+def array_2dto1d(arr):
+    arg = []
+    for i in arr:
+        for j in i:
+            arg.append(j)
+    arg = np.array(arg)
+    return arg    
+FONTSIZE = 25
 ctdData = pd.read_csv('ctd_good.csv',index_col=0)
 tf_index = np.where(ctdData['TF'].notnull())[0]
-ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
+ctdLon, ctdLat = ctdData['LON'][tf_index], ctdData['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index], index = tf_index))
-ctdTemp = pd.Series(str2ndlist(ctdData['TEMP_VALS'][tf_index],index=tf_index))
+ctdTemp = pd.Series(str2ndlist(ctdData['TEMP_VALS'][tf_index]),index=tf_index)
 ctdDepth = pd.Series(str2ndlist(ctdData['TEMP_DBAR'][tf_index]), index=tf_index)
-ctdMaxDepth = ctd['MAX_DBAR'][tf_index]
+ctdMaxDepth = ctdData['MAX_DBAR'][tf_index]
 ctdLayer = pd.Series(str2ndlist(ctdData['modDepthLayer'][tf_index],bracket=True), index=tf_index)
 ctdNearestIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
@@ -63,10 +70,48 @@ modTemp = pd.Series(getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex), 
 obsTempOff, obsTempOn = [], []
 modTempOff, modTempOn = [], []
 i = ctdMaxDepth.values>50
-obsTempOff = array_2dto1d(ctdTemp.values[i])
-modTempOff = array_2dto1d(modTemp[i])
 
-obsTempOn = array_2dto1d(ctdTemp.values[~i])
-modTempOn = array_2dto1d(modTemp[~i])
+obsTempOff = ctdTemp[i]
+modTempOff = modTemp[i]
 
-dataOn = pd.DataFrame({'lon':})
+obsTempOn = ctdTemp[~i]
+modTempOn = modTemp[~i]
+indOff, obsTOff, modTOff, layerOff = [],[],[],[]
+for i in obsTempOff.index:
+    for j in range(len(obsTempOff[i])):
+        y = modTempOff[i][j]
+        x = obsTempOff[i][j]
+        if y > x + 10:
+            indOff.append(i)
+            obsTOff.append(x)
+            modTOff.append(y)
+            layerOff.append(ctdLayer[i][j])
+dataOff = pd.DataFrame({'lon': ctdLon[indOff].values,
+                        'lat': ctdLat[indOff].values,
+                        'time': ctdTime[indOff].values,
+                        'obstemp': np.array(obsTOff),
+                        'modtemp': np.array(modTOff),
+                        'layer': np.array(dep)
+                        })
+indOn, obsTOn, modTOn, layerOn=[],[],[],[]
+for i in obsTempOn.index:
+    for j in range(len(obsTempOn[i])):
+        y = modTempOn[i][j]
+        x = obsTempOn[i][j]
+        if y > x + 10:
+            indOn.append(i)
+            obsTOn.append(x)
+            modTOn.append(y)
+            layerOn.append(ctdLayer[i][j])
+dataOn = pd.DataFrame({'lon': ctdLon[indOn].values,
+                       'lat': ctdLat[indOn].values,
+                       'time': ctdTime[indon].values,
+                       'obstemp': np.array(obsTOn),
+                       'modtemp': np.array(modTOn),
+                       'layer': np.array(dep)
+                       })
+time1 = datetime(2013, 07,10)
+time2 = starttime + timedelta(hours=1)
+layer = 4
+
+tempObj = wtm.water_roms()
