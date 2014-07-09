@@ -48,7 +48,7 @@ ctdData = pd.read_csv('ctd_good.csv', index_col=0)
 tf_index = np.where(ctdData['TF'].notnull())[0]
 ctdData = ctdData.ix[tf_index]
 id = ctdData['PTT'].drop_duplicates().values
-tID = id[0]
+tID = id[3]  #0~4, 6,7,8,9
 layers = pd.Series(str2ndlist(ctdData['modDepthLayer'], bracket=True), index=ctdData.index)
 locIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'], bracket=True), index=ctdData.index)
 ctdTemp = pd.Series(str2ndlist(ctdData['TEMP_VALS'].values), index=ctdData.index)
@@ -78,7 +78,9 @@ dates = mpl.dates.drange(np.amin(time), np.max(time), timedelta(days=30))
 dateFmt = mpl.dates.DateFormatter('%b,%Y')
 ax2.set_xticks(dates)
 ax2.xaxis.set_major_formatter(dateFmt)
-ax2.set_title('mod')
+ax2.set_title('mod', fontsize=20)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 
 ax1 = fig.add_subplot(211)
 for i in temp.index:
@@ -86,7 +88,9 @@ for i in temp.index:
 ax1.set_ylabel('temperature', fontsize=20)
 ax1.set_xticks(dates)
 ax1.xaxis.set_major_formatter(dateFmt)
-ax1.set_title('obs')
+ax1.set_title('obs', fontsize=20)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 fig.suptitle('time series of temp for turtle:{0}'.format(tID), fontsize=25)
 ax2.set_yticks(ax1.get_yticks())
 plt.show()
