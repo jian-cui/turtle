@@ -270,7 +270,7 @@ def np_datetime(m):
             dt = np.array(dt)
     return dt
 ctddata = pd.read_csv('ctd_good.csv')
-shallow = ctddata.ix[22]        # 17, 19
+shallow = ctddata.ix[17]        # 17, 19, 22
 deep = ctddata.ix[18914]
 
 shallowtime = np_datetime(shallow['END_DATE'])
@@ -296,17 +296,19 @@ for dep2 in depth2:
                                               deeptime, modelurl2))
 
 fig = plt.figure()
-# ax = fig.add_subplot(121)
-ax = fig.add_subplot(111)
+ax = fig.add_subplot(121)
+# ax = fig.add_subplot(111)
 ax.plot(modeltemp, depth, 'bo-', label='model')
 ax.plot(shallowtemp, depth, 'ro-', label='obs')
 ax.set_xlim([10, 30])
 ax.set_ylim([40, 0])
-ax.set_xlabel('Temp')
-ax.set_ylabel('Depth')
-ax.set_title('%.2f, %.2f, %s' % (shallow['LAT'], shallow['LON'], str(shallowtime)))
+ax.set_xlabel('Temp', fontsize=20)
+ax.set_ylabel('Depth', fontsize=20)
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+ax.set_title('%.2f, %.2f, %s' % (shallow['LAT'], shallow['LON'], str(shallowtime)), fontsize=20)
 ax.legend(loc='lower right')
-'''
+
 ax2 = fig.add_subplot(122)
 ax2.plot(modeltemp2, depth2, 'bo-', label='model')
 ax2.plot(deeptemp, depth2, 'ro-', label='deep')
@@ -314,8 +316,10 @@ ax2.set_xlim([10, 30])
 ax2.set_ylim([100, 0])
 ax2.set_xlabel('Temp')
 ax2.set_ylabel('Depth')
-ax2.set_title('%.2f, %.2f, %s' % (deep['LAT'], deep['LON'], str(deeptime)))
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
+ax2.set_title('%.2f, %.2f, %s' % (deep['LAT'], deep['LON'], str(deeptime)),fontsize=20)
 ax2.legend(loc='lower right')
-'''
+
 plt.show()
 
