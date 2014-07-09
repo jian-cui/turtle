@@ -252,7 +252,6 @@ class waterCTD(water_roms):
         return t
     def __watertemp(self, lon, lat, lons, lats, depth, time, data):
         index = self.nearest_point_index2(lon, lat, lons, lats)
-        print 'index: ', index
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
         t = []
         # depth = depth.split(',')
@@ -262,7 +261,6 @@ class waterCTD(water_roms):
         tem[tem.mask] = 10000
         for dep in depth:
             layer = np.argmin(abs(depth_layers + dep))
-            print 'layer: ', layer
             temp = tem[layer, index[0][0], index[1][0]]
             t.append(temp)
             # print time, dep, temp
