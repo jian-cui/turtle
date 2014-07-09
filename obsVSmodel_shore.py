@@ -7,6 +7,7 @@ import mpl_toolkits.mplot3d
 from datetime import datetime, timedelta
 from scipy import stats
 from module import str2ndlist, histogramPoints
+import netCDF4
 
 def array_2dto1d(arr):
     arg = []
@@ -15,9 +16,44 @@ def array_2dto1d(arr):
             arg.append(j)
     arg = np.array(arg)
     return arg
-
+def closest_num(num, numlist, i=0):
+    '''
+    Return index of the closest number in the list
+    '''
+    index1, index2 = 0, len(numlist)
+    indx = int(index2/2)
+    if not numlist[0] < num < numlist[-1]:
+        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
+    if index2 == 2:
+        l1, l2 = num-numlist[0], numlist[-1]-num
+        if l1 < l2:
+            i = i
+        else:
+            i = i+1
+    elif num == numlist[indx]:
+        i = i + indx
+    elif num > numlist[indx]:
+        i = closest_num(num, numlist[indx:],
+                          i=i+indx)
+    elif num < numlist[indx]:
+        i = closest_num(num, numlist[0:indx+1], i=i)
+    return i
+def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
+    ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
+    modTemp = []
+    l = len(ctdLayer.index)
+    for i in ctdLayer.index:
+        print i, l
+        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
+        modTempTime = modTempAll[timeIndex]
+        modTempTime[modTempTime.mask] = 10000
+        t = [modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
+             for j in range(len(ctdLayer[i]))]
+        modTemp.append(t)
+    modTemp = np.array(modTemp)
+    return modTemp
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_extract_good.csv', index_col=0)
+ctd = pd.read_csv('ctd_good.csv', index_col=0)
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
@@ -25,12 +61,19 @@ ctdTemp = pd.Series(str2ndlist(ctd['TEMP_VALS'][tf_index]), index=tf_index)
 # ctdTemp = pd.Series(bottom_value(ctd['TEMP_VALS'][tf_index]), index=tf_index)
 ctdDepth = pd.Series(str2ndlist(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
 ctdMaxDepth = ctd['MAX_DBAR'][tf_index]
+ctdLayer = pd.Series(str2ndlist(ctd['modDepthLayer'][tf_index],bracket=True), index=tf_index)
+ctdNearestIndex = pd.Series(str2ndlist(ctd['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-tempMod = np.array(tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url))
+# tempMod = np.array(tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url))
+modDataAll = tempObj.get_data(url)
+oceantime = modDataAll['ocean_time']
+modTempAll = modDataAll['temp']
+tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
+
 
 # dic = {'tempMod': tempMod, 'tempObs': ctdTemp, depth: ctdDepth}
 # tempObs = pd.DataFrame(dic, index=tf_index)
@@ -60,6 +103,8 @@ ax1.set_title('offshore, R-squard: %.4f' % r_value1**2, fontsize=FONTSIZE)
 ax1.set_xlabel('CTD temp', fontsize=FONTSIZE)
 ax1.set_ylabel('Model temp', fontsize=FONTSIZE)
 ax1.axis([0, 35, 0,35])
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 cbar = plt.colorbar()
 cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
 
@@ -81,6 +126,8 @@ ax2.set_title('onshore, R-squard: %.4f' % r_value2**2, fontsize=FONTSIZE)
 ax2.set_xlabel('CTD temp', fontsize=FONTSIZE)
 ax2.set_ylabel('Model temp', fontsize=FONTSIZE)
 ax2.axis([0, 35, 0,35])
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 cbar = plt.colorbar()
 cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
 plt.show()
@@ -104,6 +151,8 @@ ax3.set_title('all, R-squard: %.4f' % r_value3**2, fontsize=FONTSIZE)
 ax3.set_xlabel('CTD temp', fontsize=FONTSIZE)
 ax3.set_ylabel('Model temp', fontsize=FONTSIZE)
 ax3.axis([0, 35, 0,35])
+plt.xticks(fontsize=20)
+plt.yticks(fontsize=20)
 cbar = plt.colorbar()
 cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
 plt.show()
