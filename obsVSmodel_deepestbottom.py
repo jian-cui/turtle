@@ -337,7 +337,10 @@ def show2pic(x1, y1, fontsize):
     plt.ylabel('CTD temp', fontsize=FONTSIZE)
     cbar = plt.colorbar()
     cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
-    plt.axis([0, 30, 0, 30], fontsize=15)
+    cbar.ax.set_yticks(fontsize=20)
+    plt.axis([0, 30, 0, 30])
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
     plt.plot(x, x, 'r-', linewidth=2)
     plt.plot(x2, y2, 'y-', linewidth=2)
     # plt.title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
@@ -366,7 +369,7 @@ temp = pd.Series(temp, index = ctddata['temp'].index)
 
 index = index_by_depth(ctddata['depth'], 50)
 # colors = utilities.uniquecolors(10)
-tp='<50'
+tp='>50'
 if tp == 'all':
     x1, y1 = temp, ctddata['temp']
     ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
