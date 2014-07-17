@@ -301,7 +301,7 @@ def index_by_depth(v, depth):
     return i
 
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_extract_good.csv')
+ctd = pd.read_csv('ctd_good.csv')
 tf_index = np.where(ctd['TF'].notnull())[0] #indices of True data.
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
