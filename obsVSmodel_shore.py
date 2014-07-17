@@ -63,6 +63,13 @@ ctdDepth = pd.Series(str2ndlist(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
 ctdMaxDepth = ctd['MAX_DBAR'][tf_index]
 ctdLayer = pd.Series(str2ndlist(ctd['modDepthLayer'][tf_index],bracket=True), index=tf_index)
 ctdNearestIndex = pd.Series(str2ndlist(ctd['modNearestIndex'][tf_index], bracket=True), index=tf_index)
+url = 'http://tds.marine.rutgers.edu/thredds/dodsC/roms/espresso/2013_da/avg_Best/ESPRESSO_Real-Time_v2_Averages_Best_Available_best.ncd?h[0:1:81][0:1:129]'
+h = netCDF4.Dataset(url).variables['h']
+ctdH = []
+for i in tf_index:
+    print i
+    ctdH.append(h[int(ctdNearestIndex[i][0]),int(ctdNearestIndex[i][1])])
+ctdH = pd.Series(ctdH, index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
@@ -73,8 +80,52 @@ modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
 tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
-
-
+tempMod = pd.Series(tempMod, index=tf_index)
+wholeNum,errorNum, ratio = [], [], []
+def numError(d, ctdH, modTemp, ctdTemp):
+    '''
+    d is a list of 2 values.
+    '''
+    a = []
+    m, n = 0, 0
+    for i in modTemp.index:
+        if ctdH[i]>d[0] and ctdH[i]<=d[1]:
+            a.append(i)
+    modT = modTemp[a]
+    ctdT = ctdTemp[a]
+    for i in a:
+        for j in range(len(modT[i])):
+            y = modT[i][j]
+            x = ctdT[i][j]
+            m += 1
+            if abs(y-x)>10:
+                n+=1
+    return m, n
+d = [[0,25], [25,50], [50,75],[75,100],[100,125],[125,150],[150,175],[175,200], [200,10000]]
+for i in range(9):
+    m,n = numError(d[i], ctdH, tempMod, ctdTemp)
+    errorNum.append(n)
+    wholeNum.append(m)
+    try:
+        ratio.append(n/float(m))
+    except ZeroDivisionError:
+        ratio.append(0)
+fig = plt.figure()
+ax = fig.add_subplot(111)
+x = [i for i in range(0, 225, 25)]
+plt.bar(x, ratio, width=25, color = 'b',alpha=0.4,)
+plt.xlim([0,250])
+plt.ylim([0, 0.15])
+plt.xticks(x, fontsize=20)
+plt.yticks(fontsize=20)
+plt.xlabel('Depth', fontsize=20)
+plt.ylabel('Error Ratio', fontsize=20)
+plt.title('Error Ratio between Contours', fontsize=25)
+for a, b, c, d in zip(x, ratio, errorNum, wholeNum):
+    plt.annotate(str(c)+'/'+str(d), xy=(a+.5, b+0.0025), ha='left',fontsize=18)
+plt.show()
+'''
+#draw onshore and offshore
 # dic = {'tempMod': tempMod, 'tempObs': ctdTemp, depth: ctdDepth}
 # tempObs = pd.DataFrame(dic, index=tf_index)
 
@@ -156,3 +207,4 @@ plt.yticks(fontsize=20)
 cbar = plt.colorbar()
 cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
 plt.show()
+'''
