@@ -40,7 +40,7 @@ if option == '1':
     lonsOcean, latsOcean = lons[~u.mask], lats[~u.mask]   #reverse boolean value
     plt.plot(lonsLand, latsLand, 'b.', lonsOcean, latsOcean, 'r.', label='Model')
     '''
-    ctd = pd.read_csv('ctd_extract_good.csv', index_col=0)
+    ctd = pd.read_csv('ctd_good.csv', index_col=0)
     TF = ctd['TF']
     latGoodCTD, lonGoodCTD = ctd['LAT'][TF==True], ctd['LON'][TF==True]
     plt.plot(lonGoodCTD, latGoodCTD, 'y.', label='GoodCTD')
