@@ -347,7 +347,7 @@ def show2pic(x1, y1, fontsize):
     return ax1, ax2, r_squared
 FONTSIZE = 25
 # ctd = pd.read_csv('ctd_extract_TF.csv')
-ctd = pd.read_csv('ctd_extract_good.csv')
+ctd = pd.read_csv('ctd_good.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdlat, ctdlon = ctd['LAT'][tf_index].values, ctd['LON'][tf_index].values
 ctdtime = np_datetime(ctd['END_DATE'][tf_index])
@@ -369,20 +369,37 @@ temp = pd.Series(temp, index = ctddata['temp'].index)
 
 index = index_by_depth(ctddata['depth'], 50)
 # colors = utilities.uniquecolors(10)
-tp='>50'
+tp='<50'
 if tp == 'all':
     x1, y1 = temp, ctddata['temp']
     ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
-    ax1.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
-    ax2.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+    ax1.set_title('R-squared: %.4f' % r_squared, fontsize=FONTSIZE)
+    ax2.set_title('R-squared: %.4f' % r_squared, fontsize=FONTSIZE)
 elif tp == '<50':
     x1, y1 = temp[index[0]], ctddata['temp'][index[0]]
     ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
-    ax1.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
-    ax2.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax1.set_title('%s, R-squared: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax2.set_title('%s, R-squared: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
 elif tp == '>50':
     x1, y1 = temp[index[1]], ctddata['temp'][index[1]]
     ax1, ax2, r_squared = show2pic(x1, y1, FONTSIZE)
-    ax1.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
-    ax2.set_title('%s, R-squard: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax1.set_title('%s, R-squared: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
+    ax2.set_title('%s, R-squared: %.4f' % (tp, r_squared), fontsize=FONTSIZE)
 plt.show()
+'''
+# Plot Deepest Data Quantity
+fig = plt.figure()
+ax = fig.add_subplot(111)
+y = ctddata['depth'].values
+x = np.arange(1, np.amax(y)+1)
+bar = np.array([0]*np.amax(y))
+for i in y:
+    if i in x:
+        bar[i-1] = bar[i-1]+1
+plt.barh(x, bar)
+plt.ylim([250, 0])
+plt.ylabel('depth', fontsize=25)
+plt.xlabel('Quantity', fontsize=25)
+plt.title('Deepest data histogram', fontsize=25)
+plt.show()
+'''

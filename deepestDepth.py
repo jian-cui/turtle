@@ -14,7 +14,8 @@ obsID = obsData['PTT'][tf_index]
 layers = obsData['modDepthLayer'][tf_index]
 index = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
-starttime = datetime(2009, 8, 24)
+#starttime = datetime(2009, 8, 24)
+starttime = datetime(2013,05,20)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
@@ -43,7 +44,8 @@ x = np.array([0]*50)
 for i in p:
     x[int(i*10)]+=1
 plt.barh(y, x,height=0.08)
-plt.ylim(5,0)
+# plt.ylim(5,0)
+plt.ylim(2.2,0)
 plt.yticks(np.arange(0,5,0.1))
 plt.ylabel('obsErrorDep/modH', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)

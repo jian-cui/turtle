@@ -108,9 +108,9 @@ class water(object):
         return index
 class water_roms(water):
     '''
-    ####(2009.10.11, 2013.05.19):version1(old) 2009-2013
-    ####(2013.05.19, present): version2(new) 2013-present
-    (2006.01.01 01:00, 2014.1.1 00:00)
+    (2009.10.11, 2013.05.19):version1(old) 2009-2013
+    (2013.05.19, present): version2(new) 2013-present
+    ####(2006.01.01 01:00, 2014.1.1 00:00)
     '''
     def __init__(self):
         pass
@@ -125,8 +125,8 @@ class water_roms(water):
         self.days = int((endtime-starttime).total_seconds()/60/60/24)+1 # get total days
         time1 = datetime(year=2009,month=10,day=11) # time of url1 that starts from
         time2 = datetime(year=2013,month=5,day=19)  # time of url2 that starts from
-        url1 = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2009_da/avg?lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129]'
-        url2 = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/avg_Best/ESPRESSO_Real-Time_v2_Averages_Best_Available_best.ncd?mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129]'
+        url1 = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2009_da/avg?lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129],h,s_rho,temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129], ocean_time[0:1:19145]'
+        url2 = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/avg_Best/ESPRESSO_Real-Time_v2_Averages_Best_Available_best.ncd?mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],h,s_rho,temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129], ocean_time'
         if endtime >= time2:
             if starttime >=time2:
                 index1 = (starttime - time2).days
@@ -141,22 +141,26 @@ class water_roms(water):
             index1 = (starttime-time1).days
             index2 = index1 + self.days
             url = url1.format(index1, index2)
+        print url
+        self.oceantime = netCDF4.Dataset(url).variables['ocean_time'][:]
         return url
         '''
         self.starttime = starttime
         # self.hours = int((endtime-starttime).total_seconds()/60/60) # get total hours
         # time_r = datetime(year=2006,month=1,day=9,hour=1,minute=0)
-        url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?ocean_time[0:1:69911]'
-        self.oceantime = netCDF4.Dataset(url_oceantime).variables['ocean_time'][:]
-        t1 = (starttime - datetime(2006,01,01)).total_seconds()
-        t2 = (endtime - datetime(2006,01,01)).total_seconds()
+        # url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?ocean_time[0:1:69911]' #for 2006 url
+        url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd?time'
+        self.oceantime = netCDF4.Dataset(url_oceantime).variables['time'][:]
+        t1 = (starttime - datetime(2013,05,18)).total_seconds()/3600 # 2006,01,01 for url2006
+        t2 = (endtime - datetime(2013,05,18)).total_seconds()/3600
         self.index1 = self.__closest_num(t1, self.oceantime)
         self.index2 = self.__closest_num(t2, self.oceantime)
         print self.index1, self.index2
         # index1 = (starttime - time_r).total_seconds()/60/60
         # index2 = index1 + self.hours
         # url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?h[0:1:81][0:1:129],s_rho[0:1:35],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129]'
-        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129]'
+        # url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129]' # for url2006
+        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd?h[0:1:81][0:1:129],s_rho[0:1:35],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129]'
         url = url.format(self.index1, self.index2)
         return url
     def __closest_num(self, num, numlist, i=0):
@@ -226,7 +230,7 @@ class water_roms(water):
         print 'depth_layer', depth_layers
         layer = np.argmin(abs(depth_layers+depth))
         print 'layer: ', layer
-        time_index = self.__closest_num((time-datetime(2006,01,01)).total_seconds(),self.oceantime) - \
+        time_index = self.__closest_num((time-datetime(2013,05,18)).total_seconds()/3600,self.oceantime) - \
             self.index1
         temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
         return temp
@@ -269,9 +273,10 @@ def np_datetime(m):
             dt.append(temp)
             dt = np.array(dt)
     return dt
+'''
 ctddata = pd.read_csv('ctd_good.csv')
 shallow = ctddata.ix[17]        # 17, 19, 22
-deep = ctddata.ix[18914]
+deep = ctddata.ix[19]        # 18914
 
 shallowtime = np_datetime(shallow['END_DATE'])
 shallowtemp = [float(temp) for temp in shallow['TEMP_VALS'].split(',')]
@@ -283,7 +288,7 @@ for dep in depth:
     print dep
     modeltemp.append(modelobj.watertemp(shallow['LON'], shallow['LAT'], dep,
                                             shallowtime, modelurl))
- 
+
 deeptime = np_datetime(deep['END_DATE'])
 deeptemp = [float(temp) for temp in deep['TEMP_VALS'].split(',')]
 modelobj2 = water_roms()
@@ -313,13 +318,41 @@ ax2 = fig.add_subplot(122)
 ax2.plot(modeltemp2, depth2, 'bo-', label='model')
 ax2.plot(deeptemp, depth2, 'ro-', label='deep')
 ax2.set_xlim([10, 30])
-ax2.set_ylim([100, 0])
+ax2.set_ylim([40, 0])
 ax2.set_xlabel('Temp')
 ax2.set_ylabel('Depth')
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 ax2.set_title('%.2f, %.2f, %s' % (deep['LAT'], deep['LON'], str(deeptime)),fontsize=20)
 ax2.legend(loc='lower right')
-
 plt.show()
-
+'''
+ctddata = pd.read_csv('ctd_good.csv')
+id = [17, 19, 22, 26]
+fig = plt.figure()
+j = 1
+for i in id:
+    data = ctddata.ix[i]
+    tm = np_datetime(data['END_DATE'])
+    temp = [float(temp) for temp in data['TEMP_VALS'].split(',')]
+    modelobj = water_roms()
+    modelurl = modelobj.get_url(tm, tm+timedelta(hours=1))
+    depth = [int(dep) for dep in data['TEMP_DBAR'].split(',')]
+    modeltemp = []
+    for dep in depth:
+        print dep
+        modeltemp.append(modelobj.watertemp(data['LON'], data['LAT'], dep,
+                                            tm, modelurl))
+    ax = fig.add_subplot(2,2,j)
+    ax.plot(modeltemp, depth, 'bo--', label='model',linewidth=2)
+    ax.plot(temp, depth, 'ro-', label='obs', linewidth=2)
+    ax.set_xlim([10, 30])
+    ax.set_ylim([40, 0])
+    ax.set_xlabel('Temp', fontsize=15)
+    ax.set_ylabel('Depth', fontsize=15)
+    plt.xticks(fontsize=15)
+    plt.yticks(fontsize=15)
+    ax.set_title('%.2f, %.2f, %s' % (data['LAT'], data['LON'], str(tm)), fontsize=18)
+    ax.legend(loc='lower right')
+    j+=1
+plt.show()

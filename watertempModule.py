@@ -148,16 +148,18 @@ class water_roms(water):
         self.starttime = starttime
         # self.hours = int((endtime-starttime).total_seconds()/60/60) # get total hours
         # time_r = datetime(year=2006,month=1,day=9,hour=1,minute=0)
-        url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?ocean_time[0:1:69911]'
-        self.oceantime = netCDF4.Dataset(url_oceantime).variables['ocean_time'][:]
-        t1 = (starttime - datetime(2006,01,01)).total_seconds()
-        t2 = (endtime - datetime(2006,01,01)).total_seconds()
+        # url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?ocean_time[0:1:69911]'
+        url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd?time'
+        self.oceantime = netCDF4.Dataset(url_oceantime).variables['time'][:]
+        t1 = (starttime - datetime(2013,05,18)).total_seconds()/3600 # for url2006 it's 2006,01,01
+        t2 = (endtime - datetime(2013,05,18)).total_seconds()/3600
         self.index1 = self.closest_num(t1, self.oceantime)
         self.index2 = self.closest_num(t2, self.oceantime)
         # index1 = (starttime - time_r).total_seconds()/60/60
         # index2 = index1 + self.hours
         # url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?h[0:1:81][0:1:129],s_rho[0:1:35],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],mask_rho[0:1:81][0:1:129],u[{0}:1:{1}][0:1:35][0:1:81][0:1:128],v[{0}:1:{1}][0:1:35][0:1:80][0:1:129]'
-        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129],ocean_time'
+        # url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?s_rho[0:1:35],h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129],ocean_time'
+        url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd?h[0:1:81][0:1:129],s_rho[0:1:35],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],temp[{0}:1:{1}][0:1:35][0:1:81][0:1:129],time'     
         url = url.format(self.index1, self.index2)
         return url
     def closest_num(self, num, numlist, i=0):

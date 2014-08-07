@@ -5,6 +5,7 @@ import numpy as np
 from mpl_toolkits.basemap import Basemap
 import pandas as pd
 import sys
+import netCDF4
 def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
     ax = fig.sca(ax)
     dmap = Basemap(projection='cyl',
@@ -40,13 +41,21 @@ if option == '1':
     lonsOcean, latsOcean = lons[~u.mask], lats[~u.mask]   #reverse boolean value
     plt.plot(lonsLand, latsLand, 'b.', lonsOcean, latsOcean, 'r.', label='Model')
     '''
+    url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2006_da/his?h[0:1:81][0:1:129],lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129]'
+    data = netCDF4.Dataset(url)
+    lons, lats = data.variables['lon_rho'][:], data.variables['lat_rho'][:]
+    h = data.variables['h'][:]
     ctd = pd.read_csv('ctd_good.csv', index_col=0)
     TF = ctd['TF']
     latGoodCTD, lonGoodCTD = ctd['LAT'][TF==True], ctd['LON'][TF==True]
     plt.plot(lonGoodCTD, latGoodCTD, 'y.', label='GoodCTD')
     lonsize = [np.amin(lonGoodCTD), np.amax(lonGoodCTD)]
     latsize = [np.amin(latGoodCTD), np.amax(latGoodCTD)]
-    plt.title('GoodCTD Positions', fontsize=FONTSIZE)
+    # plt.title('GoodCTD Positions', fontsize=FONTSIZE)
+    c = plt.contourf(lons, lats, h, extend='both')
+    cb = plt.colorbar(c)
+    cb.set_label('depth(meters)', fontsize=15)
+    plt.title('Positions of turtle dives after quality control checks', fontsize=FONTSIZE)
 elif option == '2':
     ctd = pd.read_csv('2014_04_16_rawctd.csv')
     latRawCTD, lonRawCTD = ctd['LAT'], ctd['LON']
@@ -89,6 +98,6 @@ elif option == '6':
     plt.title('RawDiag Positions', fontsize=FONTSIZE)
 elif option=='0':
     sys.exit()
-draw_basemap(fig, ax, lonsize, latsize, interval_lon=20, interval_lat=20)
+draw_basemap(fig, ax, lonsize, latsize, interval_lon=1, interval_lat=1)
 plt.legend()
 plt.show()
