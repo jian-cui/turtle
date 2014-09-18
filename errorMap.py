@@ -68,6 +68,7 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth
         print i, l, 'getModTemp'
         timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
         temp = modTempAll[timeIndex]
+        temp[temp.mask] = 10000
         a, b = int(ctdNearestIndex[i][0]), int(ctdNearestIndex[i][1])
         t = []
         for depth in ctdDepth[i]:
@@ -253,7 +254,7 @@ plt.xlabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 # plt.title('error bar that |obstemp-modtemp|>10, based on depth',fontsize=25)
-plt.title('%s' % text, fontsize=25)
+plt.title('%s(depth)' % text, fontsize=25)
 
 modDepth = []
 for i in dataFinal.index:
@@ -273,6 +274,6 @@ plt.ylabel('obsErrorDep/modH', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
-plt.title('Ratio of obs error(>10)', fontsize=25)
+plt.title('Ratio of obs error(>10) (depth)', fontsize=25)
 plt.show()
 
