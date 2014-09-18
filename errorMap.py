@@ -11,7 +11,7 @@ def str2float(arg):
     ret = []
     for i in arg:
         a = i.split(',')
-        b = [float(j) for j in a]
+        b = np.array([float(j) for j in a])
         ret.append(b)
     ret = np.array(ret)
     return ret
@@ -49,17 +49,41 @@ def closest_num(num, numlist, i=0):
     elif num < numlist[indx]:
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
-def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
+def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime):
     ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
     modTemp = []
     l = len(ctdLayer.index)
     for i in ctdLayer.index:
-        print i, l
+        '''
+        # For layers
+        print i, l, 'getModTemp'
         timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
         modTempTime = modTempAll[timeIndex]
         modTempTime[modTempTime.mask] = 10000
-        t = [modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
-             for j in range(len(ctdLayer[i]))]
+        t = np.array([modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
+                          for j in range(len(ctdLayer[i]))])
+        modTemp.append(t)
+        '''
+        # For depth
+        print i, l, 'getModTemp'
+        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
+        temp = modTempAll[timeIndex]
+        a, b = int(ctdNearestIndex[i][0]), int(ctdNearestIndex[i][1])
+        t = []
+        for depth in ctdDepth[i]:
+            locDepth = waterDepth[a, b]
+            lyrDepth = s_rho * locDepth
+            if depth > lyrDepth[-1]: # Obs is shallower than last layer.
+                d = (temp[-2,a,b]-temp[-1,a,b])/(lyrDepth[-2]-lyrDepth[-1]) * \
+                    (depth-lyrDepth[-1]) + temp[-1,a,b]
+            elif depth < lyrDepth[0]: # Obs is deeper than first layer.
+                d = (temp[1,a,b]-temp[0,a,b])/(lyrDepth[1]-lyrDepth[0]) * \
+                    (depth-lyrDepth[0]) + temp[0,a,b]
+            else:
+                ind = self.closest_num(depth, lyrDepth)
+                d = (temp[ind,a,b]-temp[ind-1,a,b])/(lyrDepth[ind,a,b]-lyrDepth[ind-1,a,b]) * \
+                    (depth-lyrDepth[ind-1]) + temp[ind-1,a,b]
+            t.append(d)
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
@@ -82,37 +106,48 @@ url = tempObj.get_url(starttime, endtime)
 modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
-modTemp = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
+s_rho = modDataAll['s_rho']
+waterDepth = modDataAll['h']
+modTemp = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime)
 
-d = {'lon': ctdLon, 'lat': ctdLat, 'obstemp': ctdTemp.values,
-     'modtemp':modTemp, 'depth': ctdDepth, 'time': ctdTime.values,
-     'layer': ctdLayer}
-a = pd.DataFrame(d, index=tf_index)
+data = pd.DataFrame({'lon': ctdLon, 'lat': ctdLat,
+                     'obstemp': ctdTemp.values,'modtemp':modTemp,
+                     'depth': ctdDepth, 'time': ctdTime.values,
+                     'layer': ctdLayer}, index=tf_index)
 
 ind = [] # the indices needed
 obst = []
 modt = []
 lyr = []
 dep=[]
-for i in a.index:
-    # obst = []
-    # modt = []
-    # dep = []
+text = '|modtemp-obstemp|>10 degC' # needed to be consistent with the "if" statement below!!!!!!
+for i in data.index:
+    print i
+    diff = abs(data['obstemp'][i] - data['modtemp'][i])
+    indx = np.where(diff > 10)[0]
+    if not indx.size: continue
+    ind.extend([i] * indx.size)
+    obst.extend(data['obstemp'][i][indx])
+    modt.extend(np.array(data['modtemp'][i])[indx])
+    lyr.extend(np.array(data['layer'][i])[indx])
+    dep.extend(np.array(data['depth'][i])[indx])
+    '''
     for j in range(len(a['obstemp'][i])):
         print i, j
-        y = a['modtemp'][i][j]
-        x = a['obstemp'][i][j]
-        # if abs(x - y) > 10:     # |mod-obstemp|>10
+        y = data['modtemp'][i][j]
+        x = data['obstemp'][i][j]
+        if abs(x - y) > 10:     # |mod-obstemp|>10
         # if y - x > 10:          # modtemp-obstemp>10
-        if x - y > 10:          # obstemp-modtenp>10
+        # if x - y > 10:          # obstemp-modtenp>10
             ind.append(i)
             obst.append(x)
             modt.append(y)
-            lyr.append(a['layer'][i][j])
-            dep.append(a['depth'][i][j])
-dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
-                          'lat': a['lat'][ind].values,
-                          'time': a['time'][ind].values,
+            lyr.append(data['layer'][i][j])
+            dep.append(data['depth'][i][j])
+    '''
+dataFinal = pd.DataFrame({'lon': data['lon'][ind].values,
+                          'lat': data['lat'][ind].values,
+                          'time': data['time'][ind].values,
                           'obstemp': np.array(obst),
                           'modtemp': np.array(modt),
                           'layer': np.array(lyr),
@@ -121,53 +156,16 @@ dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           })
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
-layer = 15
-'''
+# layer = 15
+depth = -10
+
 tempObj = wtm.water_roms()
 url = tempObj.get_url(starttime, endtime)
-lon, lat = dataFinal.ix[5]['lon'].values[0], dataFinal.ix[5]['lat'].values[0]
-modTemp, layerDepth = tempObj.layerTemp(lon, lat, depth, url)
-modData = tempObj.get_data(url)
-lons, lats = modData['lon_rho'], modData['lat_rho']
-
-a = abs(np.max(layerDepth))<dataFinal['dep']
-b = dataFinal['dep']<abs(np.min(layerDepth))
-i = np.where(a & b)[0]    #layerDepth is negative
-c = dataFinal['time'][i]>starttime-timedelta(days=10)
-d = dataFinal['time'][i]>starttime+timedelta(days=10)
-j = np.where(c & d)[0]
-indx = dataFinal.ix[i].index[j]
-colorValues = dataFinal['obstemp'][indx]/32
-lonsize = np.amin(lons)-0.1, np.amax(lons)+0.1
-latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
-fig = plt.figure()
-ax = plt.subplot(111)
-dmap = Basemap(projection = 'cyl',
-           llcrnrlat = min(latsize)-0.01,
-           urcrnrlat = max(latsize)+0.01,
-           llcrnrlon = min(lonsize)-0.01,
-           urcrnrlon = max(lonsize)+0.01,
-           resolution = 'h', ax=ax)
-dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
-               labels = [1,0,0,0])
-dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
-               labels = [0,0,0,1])
-dmap.drawcoastlines()
-dmap.fillcontinents(color='grey')
-dmap.drawmapboundary()
-c = plt.contourf(lons, lats, modTemp, extend='both')
-plt.colorbar()
-plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40,c = colorValues.values, cmap=c.cmap)
-plt.show()
-'''
-tempObj = wtm.water_roms()
-url = tempObj.get_url(starttime, endtime)
-
 modData = tempObj.get_data(url)
 h, s_rho = modData['h'], modData['s_rho']
 lons, lats = modData['lon_rho'], modData['lat_rho']
 '''
-#get the mod layer. Unusefule after using "ctd_good.csv".
+#get the mod layer. Unuseful after using "ctd_good.csv".
 lyrs = []
 for i in dataFinal.index:
     l = pointLayer(dataFinal['lon'][i],dataFinal['lat'][i], lons, lats, dataFinal['dep'][i], h, s_rho)
@@ -180,47 +178,23 @@ latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
 
 fig = plt.figure()
 ax = []
-# clrmap = mpl.colors.Colormap('s', 9)
 i = 0
-ax.append(plt.subplot(2,2,i+1))
-modLayerTemp = tempObj.layerTemp(layer, url)
-l = layer+i*6
-# lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
-p = np.where(dataFinal['layer']==l)[0]
-m = dataFinal['time'][p]>starttime-timedelta(days=10)
-n = dataFinal['time'][p]<starttime+timedelta(days=10)
-b = np.where(m & n)[0]
-indx = dataFinal.ix[p].index[b]
-colorValues = dataFinal['obstemp'][indx]/32
-fig.sca(ax[i])
-dmap = Basemap(projection = 'cyl',
-           llcrnrlat = min(latsize)-0.01,
-           urcrnrlat = max(latsize)+0.01,
-           llcrnrlon = min(lonsize)-0.01,
-           urcrnrlon = max(lonsize)+0.01,
-           resolution = 'h', ax=ax[i])
-dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
-               labels = [1,0,0,0])
-dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
-               labels = [0,0,0,1])
-dmap.drawcoastlines()
-dmap.fillcontinents(color='grey')
-dmap.drawmapboundary()
-c = plt.contourf(lons, lats, modLayerTemp, extend ='both')
-clrmap  = c.cmap
-plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40, c=colorValues.values, cmap=clrmap)
-ax[i].set_title('Layer: {0}'.format(l))
-for i in range(1, 4):
+for i in range(0, 4):
     ax.append(plt.subplot(2,2,i+1))
-    l = layer+i*6
+    # l = layer+i*6
+    l = depth - i*25
     # lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
-    p = np.where(dataFinal['layer']==l)[0]
+    # p = np.where(dataFinal['layer']==l)[0]
+    a = dataFinal['dep'] < 5-l
+    b = dataFinal['dep'] > -5-l
+    p = np.where(a & b)[0]
     m = dataFinal['time'][p]>starttime-timedelta(days=10)
     n = dataFinal['time'][p]<starttime+timedelta(days=10)
     b = np.where(m & n)[0]
     indx = dataFinal.ix[p].index[b]
     colorValues = dataFinal['obstemp'][indx]/32
-    modLayerTemp = tempObj.layerTemp(l, url)  #grab new layer temp
+    # modLayerTemp = tempObj.layerTemp(l, url)  #grab new layer temp
+    modLayerTemp = tempObj.depthTemp(l, url)
     fig.sca(ax[i])
     dmap = Basemap(projection = 'cyl',
                llcrnrlat = min(latsize)-0.01,
@@ -235,14 +209,18 @@ for i in range(1, 4):
     dmap.drawcoastlines()
     dmap.fillcontinents(color='grey')
     dmap.drawmapboundary()
-    c = plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
+    if i == 0:
+        c = plt.contourf(lons, lats, modLayerTemp, extend ='both')
+        clrmap = c.cmap
+    else:
+        c = plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
     plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40, c=colorValues.values, cmap=clrmap)
-    ax[i].set_title('Layer: {0}'.format(l))
+    ax[i].set_title('Depth: {0}'.format(l))
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
-plt.suptitle('obsVSmodel, obstemp-modtemp>10',fontsize=25)
-
+plt.suptitle('obsVSmodel, %s' % text, fontsize=25)
+'''
 fig = plt.figure()
 ax = fig.add_subplot(111)
 x = np.arange(1,37)
@@ -256,8 +234,8 @@ plt.xlabel('Layer', fontsize=25)
 plt.ylabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
-plt.title('error bar that obstemp-modtemp>10, based on layers',fontsize=25)
-
+plt.title('error bar that %s, based on layers' % text, fontsize=25)
+'''
 #draw errorbar based on depth.
 fig = plt.figure()
 ax = fig.add_subplot(111)
@@ -274,8 +252,8 @@ plt.ylabel('dpeth(meters)', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
-# plt.title('error bar that obstemp-modtemp>10, based on depth',fontsize=25)
-plt.title('modeled-observed temp <10 degC', fontsize=25)
+# plt.title('error bar that |obstemp-modtemp|>10, based on depth',fontsize=25)
+plt.title('%s' % text, fontsize=25)
 
 modDepth = []
 for i in dataFinal.index:
@@ -297,3 +275,4 @@ plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.title('Ratio of obs error(>10)', fontsize=25)
 plt.show()
+
