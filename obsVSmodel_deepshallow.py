@@ -56,14 +56,14 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceant
         print i, l
         timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
         modTempTime = modTempAll[timeIndex]
-        modTempTime[modTempTime.mask] = 10000
+        modTempTime[modTempTime.mask] = False
         t = [modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
              for j in range(len(ctdLayer[i]))]
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_good.csv')
+ctd = pd.read_csv('ctdWithModTempByDepth_new.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
@@ -76,6 +76,10 @@ ctdNearestIndex = pd.Series(str2ndlist(ctd['modNearestIndex'][tf_index], bracket
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
+# for depth
+tempMod = pd.Series(str2ndlist(ctd['modTempByDepth'][tf_index],bracket=True), index=tf_index)
+'''
+# for layers
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
 # tempMod = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
@@ -83,7 +87,7 @@ modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
 tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
-
+'''
 # dic = {'tempMod': tempMod, 'tempObs': ctdTemp, depth: ctdDepth}
 # tempObs = pd.DataFrame(dic, index=tf_index)
 
@@ -92,12 +96,33 @@ tempModDeep, tempModShallow = [], []
 for i in range(len(ctdTime.values)):
     for j in range(len(ctdDepth.values[i])):
         print i, j
+        if tempMod.values[i][j] > 100: continue
         if ctdDepth.values[i][j] > 50.0:
             tempObsDeep.append(ctdTemp.values[i][j])
-            tempModDeep.append(tempMod[i][j])
+            tempModDeep.append(tempMod.values[i][j])
         else:
             tempObsShallow.append(ctdTemp.values[i][j])
-            tempModShallow.append(tempMod[i][j])
+            tempModShallow.append(tempMod.values[i][j])
+
+tempObs1, tempObs2, tempObs3, tempObs4 = [],[],[],[]
+tempMod1, tempMod2, tempMod3, tempMod4 = [],[],[],[]
+for i in range(len(ctdTime.values)):
+    for j in range(len(ctdDepth.values[i])):
+        print i, j
+        d = ctdDepth.values[i],[j]
+        if tempMod.values[i][j] > 100: continue
+        if d<25.0:
+            tempObs1.append(ctdTemp.values[i][j])
+            tempMod1.append(tempMod.values[i][j])
+        elif d>=25.0 and d<50.0:
+            tempObs2.append(ctdTemp.values[i][j])
+            tempMod2.append(tempMod.values[i][j])
+        elif d>=50.0 and d<75:
+            tempObs3.append(ctdTemp.values[i][j])
+            tempMod3.append(tempMod.values[i][j])
+        elif d>=75.0 and d<100:
+            tempObs4.append(ctdTemp.values[i][j])
+            tempMod4.append(tempMod.values[i][j])
 '''
 #use scatter
 x = np.arange(0, 30, 0.01)

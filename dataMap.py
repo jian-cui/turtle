@@ -48,7 +48,7 @@ if option == '1':
     ctd = pd.read_csv('ctd_good.csv', index_col=0)
     TF = ctd['TF']
     latGoodCTD, lonGoodCTD = ctd['LAT'][TF==True], ctd['LON'][TF==True]
-    plt.plot(lonGoodCTD, latGoodCTD, 'y.', label='GoodCTD')
+    plt.plot(lonGoodCTD, latGoodCTD, 'y.', label='Good Profiles')
     lonsize = [np.amin(lonGoodCTD), np.amax(lonGoodCTD)]
     latsize = [np.amin(latGoodCTD), np.amax(latGoodCTD)]
     # plt.title('GoodCTD Positions', fontsize=FONTSIZE)
