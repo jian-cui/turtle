@@ -29,3 +29,11 @@ def histogramPoints(x, y, bins):
     H = np.flipud(H)
     Hmasked = np.ma.masked_where(H==0, H)
     return xedges, yedges, Hmasked
+def str2float(arg):
+    ret = []
+    for i in arg:
+        a = i.split(',')
+        b = np.array([float(j) for j in a])
+        ret.append(b)
+    ret = np.array(ret)
+    return ret
