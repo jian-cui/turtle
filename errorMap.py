@@ -5,16 +5,9 @@ import watertempModule as wtm
 from  watertempModule import np_datetime, bottom_value, dist
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
-from module import str2ndlist
+from module import str2ndlist, str2float
 import netCDF4
-def str2float(arg):
-    ret = []
-    for i in arg:
-        a = i.split(',')
-        b = np.array([float(j) for j in a])
-        ret.append(b)
-    ret = np.array(ret)
-    return ret
+
 def nearest_point_index2(lon, lat, lons, lats):
     d = wtm.dist(lon, lat, lons ,lats)
     min_dist = np.min(d)
@@ -50,7 +43,7 @@ def closest_num(num, numlist, i=0):
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
 def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime):
-    ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
+    indx = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
     modTemp = []
     l = len(ctdLayer.index)
     for i in ctdLayer.index:
@@ -66,23 +59,25 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth
         '''
         # For depth
         print i, l, 'getModTemp'
-        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
+        timeIndex1 = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)
+        timeIndex = timeIndex1 - indx
         temp = modTempAll[timeIndex]
         temp[temp.mask] = 10000
-        a, b = int(ctdNearestIndex[i][0]), int(ctdNearestIndex[i][1])
+        a, b = int(ctdNearestIndex[i][0]), int(ctdNearestIndex[i][1]) # index of nearest model node
         t = []
         for depth in ctdDepth[i]:
-            locDepth = waterDepth[a, b]
-            lyrDepth = s_rho * locDepth
-            if depth > lyrDepth[-1]: # Obs is shallower than last layer.
+            depth = -depth
+            locDepth = waterDepth[a, b]# Get the bottom depth of this location.
+            lyrDepth = s_rho * locDepth# Depth of each layer
+            if depth > lyrDepth[-1]: # Obs is shallower than last layer which is the surface.
                 d = (temp[-2,a,b]-temp[-1,a,b])/(lyrDepth[-2]-lyrDepth[-1]) * \
                     (depth-lyrDepth[-1]) + temp[-1,a,b]
-            elif depth < lyrDepth[0]: # Obs is deeper than first layer.
+            elif depth < lyrDepth[0]: # Obs is deeper than first layer which is the bottom.
                 d = (temp[1,a,b]-temp[0,a,b])/(lyrDepth[1]-lyrDepth[0]) * \
                     (depth-lyrDepth[0]) + temp[0,a,b]
             else:
-                ind = self.closest_num(depth, lyrDepth)
-                d = (temp[ind,a,b]-temp[ind-1,a,b])/(lyrDepth[ind,a,b]-lyrDepth[ind-1,a,b]) * \
+                ind = closest_num(depth, lyrDepth)
+                d = (temp[ind,a,b]-temp[ind-1,a,b])/(lyrDepth[ind]-lyrDepth[ind-1]) * \
                     (depth-lyrDepth[ind-1]) + temp[ind-1,a,b]
             t.append(d)
         modTemp.append(t)
@@ -110,7 +105,11 @@ modTempAll = modDataAll['temp']
 s_rho = modDataAll['s_rho']
 waterDepth = modDataAll['h']
 modTemp = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime)
-
+'''
+# Useful, create new data file used by "obsVsmodel_deepshallow.py"
+ctdData['modTempByDepth'] = pd.Series(modTemp, index = tf_index)
+ctdData.to_csv('ctdWithModTempByDepth.csv')
+'''
 data = pd.DataFrame({'lon': ctdLon, 'lat': ctdLat,
                      'obstemp': ctdTemp.values,'modtemp':modTemp,
                      'depth': ctdDepth, 'time': ctdTime.values,
@@ -121,11 +120,10 @@ obst = []
 modt = []
 lyr = []
 dep=[]
-text = '|modtemp-obstemp|>10 degC' # needed to be consistent with the "if" statement below!!!!!!
+text = '|modtemp-obstemp|>10 degC' # remember to keep consistent with the "if" statement below
 for i in data.index:
-    print i
-    diff = abs(data['obstemp'][i] - data['modtemp'][i])
-    indx = np.where(diff > 10)[0]
+    diff = data['obstemp'][i] - data['modtemp'][i]
+    indx = np.where(abs(diff) > 10)[0]
     if not indx.size: continue
     ind.extend([i] * indx.size)
     obst.extend(data['obstemp'][i][indx])
@@ -214,7 +212,7 @@ for i in range(0, 4):
         c = plt.contourf(lons, lats, modLayerTemp, extend ='both')
         clrmap = c.cmap
     else:
-        c = plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
+        plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
     plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40, c=colorValues.values, cmap=clrmap)
     ax[i].set_title('Depth: {0}'.format(l))
 fig.subplots_adjust(right=0.8)
