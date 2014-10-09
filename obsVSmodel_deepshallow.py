@@ -48,6 +48,7 @@ def closest_num(num, numlist, i=0):
     elif num < numlist[indx]:
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
+'''
 def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
     ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
     modTemp = []
@@ -62,8 +63,52 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceant
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
+'''
+def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime):
+    indx = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
+    modTemp = []
+    l = len(ctdLayer.index)
+    for i in ctdLayer.index:
+        '''
+        # For layers
+        print i, l, 'getModTemp'
+        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
+        modTempTime = modTempAll[timeIndex]
+        modTempTime[modTempTime.mask] = 10000
+        t = np.array([modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
+                          for j in range(len(ctdLayer[i]))])
+        modTemp.append(t)
+        '''
+        # For depth
+        print i, l, 'getModTemp'
+        print 'ctdTime[i]', ctdTime[i]
+        timeIndex1 = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)
+        timeIndex = timeIndex1 - indx
+        temp = modTempAll[timeIndex]
+        temp[temp.mask] = 10000
+        a, b = int(ctdNearestIndex[i][0]), int(ctdNearestIndex[i][1]) # index of nearest model node
+        t = []
+        for depth in ctdDepth[i]:
+            depth = -depth
+            locDepth = waterDepth[a, b]# Get the bottom depth of this location.
+            lyrDepth = s_rho * locDepth# Depth of each layer
+            print lyrDepth[-1], depth
+            if depth > lyrDepth[-1]: # Obs is shallower than last layer which is the surface.
+                d = (temp[-2,a,b]-temp[-1,a,b])/(lyrDepth[-2]-lyrDepth[-1]) * \
+                    (depth-lyrDepth[-1]) + temp[-1,a,b]
+            elif depth < lyrDepth[0]: # Obs is deeper than first layer which is the bottom.
+                d = (temp[1,a,b]-temp[0,a,b])/(lyrDepth[1]-lyrDepth[0]) * \
+                    (depth-lyrDepth[0]) + temp[0,a,b]
+            else:
+                ind = closest_num(depth, lyrDepth)
+                d = (temp[ind,a,b]-temp[ind-1,a,b])/(lyrDepth[ind]-lyrDepth[ind-1]) * \
+                    (depth-lyrDepth[ind-1]) + temp[ind-1,a,b]
+            t.append(d)
+        modTemp.append(t)
+    modTemp = np.array(modTemp)
+    return modTemp
 FONTSIZE = 25
-ctd = pd.read_csv('ctdWithModTempByDepth_new.csv')
+ctd = pd.read_csv('ctdWithModTempByDepth.csv')
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
@@ -109,7 +154,7 @@ tempMod1, tempMod2, tempMod3, tempMod4 = [],[],[],[]
 for i in range(len(ctdTime.values)):
     for j in range(len(ctdDepth.values[i])):
         print i, j
-        d = ctdDepth.values[i],[j]
+        d = ctdDepth.values[i][j]
         if tempMod.values[i][j] > 100: continue
         if d<25.0:
             tempObs1.append(ctdTemp.values[i][j])
@@ -120,9 +165,10 @@ for i in range(len(ctdTime.values)):
         elif d>=50.0 and d<75:
             tempObs3.append(ctdTemp.values[i][j])
             tempMod3.append(tempMod.values[i][j])
-        elif d>=75.0 and d<100:
+        elif d>=75.0:
             tempObs4.append(ctdTemp.values[i][j])
             tempMod4.append(tempMod.values[i][j])
+rng = ['25.0', '25.0~50.0', '50.0~75.0', '75.0']
 '''
 #use scatter
 x = np.arange(0, 30, 0.01)
@@ -165,6 +211,29 @@ z = ctdDepth
 # ax.scatter(x, y, z)
 ax.contour(x, y, z)
 ax.set_zlim([250,0])
+plt.show()
+'''
+x = np.arange(0, 30, 0.01)
+for i in range(4):
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    exec('tempObs = tempObs%s' % str(i+1))
+    exec('tempMod = tempMod%s' % str(i+1))
+    x, y ,Hmasked = histogramPoints(tempObs, tempMod, 200)
+    c = ax.pcolormesh(x, y, Hmasked)
+    ax.plot(x, x, 'r-')
+    fit = np.polyfit(tempObs, tempMod, 1)
+    fit_fn = np.poly1d(fit)
+    ax.plot(tempObs, fit_fn(tempObs), 'y-', linewidth=2)
+    gradient, intercept, r_value, p_value, std_err\
+         = stats.linregress(tempObs, tempMod)
+    ax.set_title('%s, R-squard: %.4f' % (rng[i], r_value**2), fontsize=FONTSIZE)
+    ax.set_xlabel('Obs temp', fontsize=FONTSIZE)
+    ax.set_ylabel('Model temp', fontsize=FONTSIZE)
+    plt.xticks(fontsize=20)
+    plt.yticks(fontsize=20)
+    cbar = plt.colorbar(c)
+    cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
 plt.show()
 '''
 #use histogram2d and pcolormesh
@@ -211,3 +280,4 @@ cbar = plt.colorbar(c2)
 cbar.ax.set_ylabel('Count', fontsize=FONTSIZE)
 cbar.ax.set_yticks(fontsize=20)
 plt.show()
+'''
