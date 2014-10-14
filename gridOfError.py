@@ -111,7 +111,7 @@ for s in range(8):
     b = np.arange(m1, m2, 0.47)
     for i, j, k in zip(a, b, errorNum[s]):
         print i, j, k
-        plt.text(i, j, str(k), color='r')
+        plt.text(i, j, str(k), color='r',multialignment='center')
     m1 = m1 + 0.408
     m2 = m2 + 0.408
     n1 = n1 - 0.45
@@ -152,7 +152,7 @@ for s in range(8):
     b = np.arange(m1, m2, 0.47)
     for i, j, k in zip(a, b, dataNum[s]):
         print i, j, k
-        plt.text(i, j, str(k), color='r')
+        plt.text(i, j, str(k), color='r',multialignment='center', ha='center')
     m1 = m1 + 0.408
     m2 = m2 + 0.408
     n1 = n1 - 0.45
