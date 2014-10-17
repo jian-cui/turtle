@@ -48,7 +48,7 @@ ctdData = pd.read_csv('ctd_good.csv', index_col=0)
 tf_index = np.where(ctdData['TF'].notnull())[0]
 ctdData = ctdData.ix[tf_index]
 id = ctdData['PTT'].drop_duplicates().values
-tID = id[3]  #0~4, 6,7,8,9
+tID = id[6]  #0~4, 6,7,8,9
 layers = pd.Series(str2ndlist(ctdData['modDepthLayer'], bracket=True), index=ctdData.index)
 locIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'], bracket=True), index=ctdData.index)
 ctdTemp = pd.Series(str2ndlist(ctdData['TEMP_VALS'].values), index=ctdData.index)
@@ -62,7 +62,7 @@ temp = ctdTemp[ctdData['PTT']==tID]
 starttime, endtime=np.amin(time), np.amax(time)+timedelta(hours=1)
 modObj = wtm.waterCTD()
 url = modObj.get_url(starttime, endtime)
-oceantime = netCDF4.Dataset(url).variables['time']
+oceantime = netCDF4.Dataset(url).variables['ocean_time']
 modTempAll = netCDF4.Dataset(url).variables['temp']
 modTemp = getModTemp(modTempAll, ctdTime, layers, locIndex, starttime, oceantime)
 modTemp = pd.Series(modTemp, index=temp.index)
