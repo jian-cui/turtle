@@ -60,9 +60,6 @@ obst = []
 modt = []
 dep = []
 for i in a.index:
-    # obst = []
-    # modt = []
-    # dep = []
     for j in range(len(a['obstemp'][i])):
         print i, j
         y = a['modtemp'][i][j]
