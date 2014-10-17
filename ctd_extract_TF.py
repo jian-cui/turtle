@@ -98,5 +98,5 @@ ctd['TF'] = ctd_TF
 print ctd
 print '{0} is OK(including "null" lon and lat values.).'.format(len(ctd_TF)/28975.0)
 print '{0} is OK.'.format(len(ctd_TF)/15657.0)
-print("save as 'ctd_extrack_good.csv'")
+print("save as 'ctd_extract_good.csv'")
 ctd.to_csv('ctd_extract_good.csv')
