@@ -9,7 +9,7 @@ from module import str2ndlist
 obsData = pd.read_csv('ctd_good.csv')
 tf_index = np.where(obsData['TF'].notnull())[0]
 obsLat, obsLon = obsData['LAT'][tf_index], obsData['LON'][tf_index]
-obsDeepest = obsData['MAX_DBAR'][tf_index]
+obsDeepest = obsData['MAX_DBAR'][tf_index] # get deepest data file depth
 obsID = obsData['PTT'][tf_index]
 layers = obsData['modDepthLayer'][tf_index]
 index = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
