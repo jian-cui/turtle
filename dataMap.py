@@ -45,7 +45,7 @@ if option == '1':
     data = netCDF4.Dataset(url)
     lons, lats = data.variables['lon_rho'][:], data.variables['lat_rho'][:]
     h = data.variables['h'][:]
-    ctd = pd.read_csv('ctd_good.csv', index_col=0)
+    ctd = pd.read_csv('ctd_extract_good.csv', index_col=0)
     TF = ctd['TF']
     latGoodCTD, lonGoodCTD = ctd['LAT'][TF==True], ctd['LON'][TF==True]
     plt.plot(lonGoodCTD, latGoodCTD, 'y.', label='Good Profiles')
