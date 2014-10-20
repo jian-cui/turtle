@@ -43,7 +43,17 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceant
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
-
+def smooth(v, e):
+    #v should be a list
+    for i in range(len(v))[1:-1]:
+        a = v[i]
+        b = v[i+1]
+        c = v[i-1]
+        diff1 = abs(a - b)
+        diff2 = abs(a - c)
+        if diff2>e:
+            v[i] = c
+    return v
 ctdData = pd.read_csv('ctd_good.csv', index_col=0)
 tf_index = np.where(ctdData['TF'].notnull())[0]
 ctdData = ctdData.ix[tf_index]
@@ -77,17 +87,7 @@ for i in temp.index:
 data = pd.DataFrame({'time':time.values, 'obsMaxTemp':obsMaxTemp, 'obsMinTemp':obsMinTemp,
                     'modMaxTemp': modMaxTemp, 'modMinTemp': modMinTemp}, index=range(len(time)))
 data = data.sort_index(by='time')
-def smooth(v, e):
-    #v should be a list
-    for i in range(len(v))[1:-1]:
-        a = v[i]
-        b = v[i+1]
-        c = v[i-1]
-        diff1 = abs(a - b)
-        diff2 = abs(a - c)
-        if diff2>e:
-            v[i] = c
-    return v
+
 data['obsMinTemp'] = smooth(data['obsMinTemp'].values, 5)
 data['modMinTemp'] = smooth(data['modMinTemp'].values, 5)
 data['time'] = smooth(data['time'].values, timedelta(days=20))
