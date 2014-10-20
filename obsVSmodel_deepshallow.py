@@ -135,7 +135,7 @@ tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, 
 '''
 # dic = {'tempMod': tempMod, 'tempObs': ctdTemp, depth: ctdDepth}
 # tempObs = pd.DataFrame(dic, index=tf_index)
-
+'''
 tempObsDeep, tempObsShallow = [], []
 tempModDeep, tempModShallow = [], []
 for i in range(len(ctdTime.values)):
@@ -148,7 +148,7 @@ for i in range(len(ctdTime.values)):
         else:
             tempObsShallow.append(ctdTemp.values[i][j])
             tempModShallow.append(tempMod.values[i][j])
-
+'''
 tempObs1, tempObs2, tempObs3, tempObs4 = [],[],[],[]
 tempMod1, tempMod2, tempMod3, tempMod4 = [],[],[],[]
 for i in range(len(ctdTime.values)):
