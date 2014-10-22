@@ -1,3 +1,6 @@
+'''
+Draw error bar
+'''
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -6,6 +9,9 @@ from  watertempModule import np_datetime, bottom_value, dist
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
 def str2float(arg):
+    '''
+    Convert string to float list
+    '''
     ret = []
     for i in arg:
         i = i.split(',')
@@ -17,19 +23,25 @@ def str2float(arg):
     ret = np.array(ret)
     return ret
 def nearest_point_index2(lon, lat, lons, lats):
+    '''
+    Calculate the nearest point.
+    '''
     d = wtm.dist(lon, lat, lons ,lats)
     min_dist = np.min(d)
     index = np.where(d==min_dist)
     return index
 def pointLayer(lon, lat, lons, lats, vDepth, h, s_rho):
-    #Return which layer is a certian point is in.
+    '''
+    Return which layer is a certian point is in.
+    '''
     index = nearest_point_index2(lon, lat, lons, lats)
     depthLayers = h[index[0][0]][index[1][0]] * s_rho
     # layerDepth = [depthLayers[-layer+1], depthLayers[-layer]]
     l = np.argmin(abs(depthLayers + vDepth))
     return l
+###################################MAIN CODE###########################################
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_extract_good.csv')
+ctd = pd.read_csv('ctd_extract_good.csv') # From ctd_extract_TF.py
 tf_index = np.where(ctd['TF'].notnull())[0]
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
@@ -136,47 +148,18 @@ latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
 
 fig = plt.figure()
 ax = []
-# clrmap = mpl.colors.Colormap('s', 9)
 i = 0
-ax.append(plt.subplot(2,2,i+1))
-modLayerTemp = tempObj.layerTemp(layer, url)
-l = layer+i*8
-lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
-a = np.where(dataFinal['layer']==l)[0]
-m = dataFinal['time'][a]>starttime-timedelta(days=10)
-n = dataFinal['time'][a]<starttime+timedelta(days=10)
-b = np.where(m & n)[0]
-indx = dataFinal.ix[a].index[b]
-colorValues = dataFinal['obstemp'][indx]/32
-fig.sca(ax[i])
-dmap = Basemap(projection = 'cyl',
-           llcrnrlat = min(latsize)-0.01,
-           urcrnrlat = max(latsize)+0.01,
-           llcrnrlon = min(lonsize)-0.01,
-           urcrnrlon = max(lonsize)+0.01,
-           resolution = 'h', ax=ax[i])
-dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
-               labels = [1,0,0,0])
-dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
-               labels = [0,0,0,1])
-dmap.drawcoastlines()
-dmap.fillcontinents(color='grey')
-dmap.drawmapboundary()
-c = plt.contourf(lons, lats, modLayerTemp, extend ='both')
-clrmap  = c.cmap
-plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40, c=colorValues.values, cmap=clrmap)
-ax[i].set_title('Layer: {0}'.format(l))
-for i in range(1, 4):
+for i in range(0, 4):
     ax.append(plt.subplot(2,2,i+1))
-    l = layer+i*4
+    layer = layer+i*4
     lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
-    a = np.where(dataFinal['layer']==l)[0]
+    a = np.where(dataFinal['layer']==layer)[0]
     m = dataFinal['time'][a]>starttime-timedelta(days=10)
     n = dataFinal['time'][a]<starttime+timedelta(days=10)
     b = np.where(m & n)[0]
     indx = dataFinal.ix[a].index[b]
     colorValues = dataFinal['obstemp'][indx]/32
-    modLayerTemp = tempObj.layerTemp(l, url)  #grab new layer temp
+    modLayerTemp = tempObj.layerTemp(layer, url)  #grab new layer temp
     fig.sca(ax[i])
     dmap = Basemap(projection = 'cyl',
                llcrnrlat = min(latsize)-0.01,
@@ -191,9 +174,13 @@ for i in range(1, 4):
     dmap.drawcoastlines()
     dmap.fillcontinents(color='grey')
     dmap.drawmapboundary()
-    c = plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
+    if i==0:
+        c = plt.contourf(lons, lats, modLayerTemp, extend ='both')
+        clrmap = c.cmap
+    else:
+        c = plt.contourf(lons, lats, modLayerTemp, extend ='both', cmap=clrmap)
     plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40, c=colorValues.values, cmap=clrmap)
-    ax[i].set_title('Layer: {0}'.format(l))
+    ax[i].set_title('Layer: {0}'.format(layer))
 fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot

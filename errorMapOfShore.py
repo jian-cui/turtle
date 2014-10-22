@@ -1,3 +1,6 @@
+'''
+Draw the errorMap of off-shore and on-shore
+'''
 import watertempModule as wtm
 from watertempModule import np_datetime
 import numpy as np
