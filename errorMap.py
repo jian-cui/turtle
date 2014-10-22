@@ -33,10 +33,10 @@ obst = []
 modt = []
 lyr = []
 dep=[]
-text = '|modtemp-obstemp|>10 degC' # remember to keep consistent with the "if" statement below
+text = '|modtemp-obstemp|>10 degC' # remember to keep consistent with "diff" argument below
 for i in data.index:
-    diff = data['obstemp'][i] - data['modtemp'][i]
-    indx = np.where(abs(diff) > 10)[0]
+    diff = abs(data['obstemp'][i] - data['modtemp'][i])
+    indx = np.where(diff > 10)[0]
     if not indx.size: continue
     ind.extend([i] * indx.size)
     obst.extend(data['obstemp'][i][indx])
@@ -90,7 +90,7 @@ for i in range(0, 4):
     # p = np.where(dataFinal['layer']==l)[0]
     a = dataFinal['dep'] < 5-l
     b = dataFinal['dep'] > -5-l
-    p = np.where(a & b)[0]
+    p = np.where(a & b)[0]      # Get the index of 5m above and 5m below current depth.
     m = dataFinal['time'][p]>starttime-timedelta(days=10)
     n = dataFinal['time'][p]<starttime+timedelta(days=10)
     b = np.where(m & n)[0]

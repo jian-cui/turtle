@@ -15,7 +15,7 @@ obsLat, obsLon = obsData['LAT'][tf_index], obsData['LON'][tf_index]
 obsDeepest = obsData['MAX_DBAR'][tf_index] # get deepest data file depth
 #obsID = obsData['PTT'][tf_index]           # Get ID of turtle.
 layers = obsData['modDepthLayer'][tf_index]
-index = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
+modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
 #starttime = datetime(2009, 8, 24)
 starttime = datetime(2013,05,20)
@@ -27,7 +27,7 @@ modTempAll = modData.variables['temp']
 h = modData.variables['h']
 newH=[]
 for i in tf_index:
-    m, n = int(index[i][0]), int(index[i][1])
+    m, n = int(modNearestIndex[i][0]), int(modNearestIndex[i][1])
     newH.append(h[m][n])
     print i
 

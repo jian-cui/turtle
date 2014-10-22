@@ -72,6 +72,7 @@ def dist(lon1, lat1, lon2, lat2):
     l = R*np.arccos(np.cos(lat1)*np.cos(lat2)*np.cos(lon1-lon2)+
                     np.sin(lat1)*np.sin(lat2))
     return l
+#####################################MAIN CODE##########################################
 r = 3
 hour = 3
 ctd = pd.read_csv('2014_04_16_rawctd.csv')

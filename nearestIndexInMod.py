@@ -43,7 +43,7 @@ modLons = modData.variables['lon_rho'][:]
 modLats = modData.variables['lat_rho'][:]
 s_rho = modData.variables['s_rho'][:]
 h = modData.variables['h'][:]
-indexNotNull = obsLon[obsLon.isnull()==False].index # some obslat and obslon of point are null, get rid of them.
+indexNotNull = obsLon[obsLon.isnull()==False].index # some obslat and obslon of point arex null, get rid of them.
 loc = []
 for i in indexNotNull:
     ind = []
