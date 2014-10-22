@@ -58,22 +58,22 @@ url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/hidden/200
 data = netCDF4.Dataset(url)
 lons, lats = data.variables['lon_rho'], data.variables['lat_rho']
 
-lonA, latA = lons[81][0], lats[81][0]
+lonA, latA = lons[81][0], lats[81][0] # Vertex of ROMS area.
 lonB, latB = lons[81][129], lats[81][129]
 lonC, latC = lons[0][129], lats[0][129]
 lonD, latD = lons[0][0], lats[0][0]
 
-ctdData = pd.read_csv('ctdWithModTempByDepth.csv')
-tf_index = np.where(ctdData['TF'].notnull())[0]
-ctdNearestIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'][tf_index], bracket=True), index=tf_index) # if str has '[' and ']', bracket should be True
-modTemp = pd.Series(str2ndlist(ctdData['modTempByDepth'][tf_index],bracket=True), index=tf_index)
-ctdLon, ctdLat = ctdData['LON'][tf_index], ctdData['LAT'][tf_index]
-ctdTime = pd.Series(np_datetime(ctdData['END_DATE'][tf_index]), index=tf_index)
-ctdTemp = pd.Series(str2float(ctdData['TEMP_VALS'][tf_index]), index=tf_index)
+obsData = pd.read_csv('ctdWithModTempByDepth.csv')
+tf_index = np.where(obsData['TF'].notnull())[0]
+modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index) # if str has '[' and ']', bracket should be True
+modTemp = pd.Series(str2ndlist(obsData['modTempByDepth'][tf_index],bracket=True), index=tf_index)
+obsLon, obsLat = obsData['LON'][tf_index], obsData['LAT'][tf_index]
+obsTime = pd.Series(np_datetime(obsData['END_DATE'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2float(obsData['TEMP_VALS'][tf_index]), index=tf_index)
 
-data = pd.DataFrame({'lon': ctdLon, 'lat': ctdLat,
-                     'obstemp': ctdTemp.values,'modtemp':modTemp,
-                     'time': ctdTime.values, 'nearestIndex': ctdNearestIndex.values},
+data = pd.DataFrame({'lon': obsLon, 'lat': obsLat,
+                     'obstemp': obsTemp.values,'modtemp':modTemp,
+                     'time': obsTime.values, 'nearestIndex': modNearestIndex.values},
                     index=tf_index)
 
 lonsize = [np.amin(lons), np.amax(lons)]
@@ -101,18 +101,18 @@ for i in data.index:
     diff = data['obstemp'][i] - data['modtemp'][i]
     indx = np.where(abs(diff)>10)[0]
     if not indx.size: continue
-    nearestIndex.extend([ctdNearestIndex[i]] * indx.size)
+    nearestIndex.extend([modNearestIndex[i]] * indx.size)
     '''
     # all points
     m = len(data['lon'])
-    nearestIndex.extend([ctdNearestIndex[i]] * m)
+    nearestIndex.extend([modNearestIndex[i]] * m)
     '''
 for i in nearestIndex:
     m = whichArea(i[0], r1)
     n = whichArea(i[1], r2)
     errorNum[m][n] += 1
-m1, m2 = 34.05, 39.84
-n1, n2 = -75.83, -67.72
+m1, m2 = 34.05, 39.84           # m1, m2 are the position of Text
+n1, n2 = -75.83, -67.72         # n1, n2 are the position of Text
 for s in range(8):
 # a = np.arange(-75.83, -67.72, 0.631)
 # b = np.arange(34.05, 39.84, 0.47)
@@ -149,7 +149,7 @@ nearestIndex = []
 for i in data.index:
     # all points
     m = len(data['lon'])
-    nearestIndex.extend([ctdNearestIndex[i]] * m)
+    nearestIndex.extend([modNearestIndex[i]] * m)
 for i in nearestIndex:
     m = whichArea(i[0], r1)
     n = whichArea(i[1], r2)
