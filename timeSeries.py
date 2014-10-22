@@ -32,17 +32,20 @@ def closest_num(num, numlist, i=0):
     elif num < numlist[indx]:
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
-def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
+def getModTemp(modTempAll, obsTime, obsLayer, obsNearestIndex, starttime, oceantime):
+    '''
+    Return the mod temp corresponding to observation based on layers, not depth
+    '''
     ind = closest_num((starttime -datetime(2013,05,18)).total_seconds()/3600, oceantime)
     modTemp = []
-    l = len(ctdLayer.index)
-    for i in ctdLayer.index:
+    l = len(obsLayer.index)
+    for i in obsLayer.index:
         print i, l
-        timeIndex = closest_num((ctdTime[i]-datetime(2013,05,18)).total_seconds()/3600, oceantime)-ind
+        timeIndex = closest_num((obsTime[i]-datetime(2013,05,18)).total_seconds()/3600, oceantime)-ind
         modTempTime = modTempAll[timeIndex]
         # modTempTime[modTempTime.mask] = 10000
-        t = [modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
-             for j in range(len(ctdLayer[i]))]
+        t = [modTempTime[obsLayer[i][j],obsNearestIndex[i][0], obsNearestIndex[i][1]] \
+             for j in range(len(obsLayer[i]))]
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
@@ -57,27 +60,27 @@ def smooth(v, e):
         if diff2>e:
             v[i] = c
     return v
-ctdData = pd.read_csv('ctd_good.csv', index_col=0)
-tf_index = np.where(ctdData['TF'].notnull())[0]
-ctdData = ctdData.ix[tf_index]
-id = ctdData['PTT'].drop_duplicates().values
+obsData = pd.read_csv('ctd_good.csv', index_col=0)
+tf_index = np.where(obsData['TF'].notnull())[0]
+obsData = obsData.ix[tf_index]
+id = obsData['PTT'].drop_duplicates().values
 tID = id[6]  #0~4, 6,7,8,9
-layers = pd.Series(str2ndlist(ctdData['modDepthLayer'], bracket=True), index=ctdData.index)
-locIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'], bracket=True), index=ctdData.index)
-ctdTemp = pd.Series(str2ndlist(ctdData['TEMP_VALS'].values), index=ctdData.index)
-ctdTime = pd.Series(np_datetime(ctdData['END_DATE'].values), index=ctdData.index)
+layers = pd.Series(str2ndlist(obsData['modDepthLayer'], bracket=True), index=obsData.index) # If str has '[' and ']', bracket should be True.
+locIndex = pd.Series(str2ndlist(obsData['modNearestIndex'], bracket=True), index=obsData.index)
+obsTemp = pd.Series(str2ndlist(obsData['TEMP_VALS'].values), index=obsData.index)
+obsTime = pd.Series(np_datetime(obsData['END_DATE'].values), index=obsData.index)
 
-layers = layers[ctdData['PTT']==tID]
-locIndex = locIndex[ctdData['PTT']==tID]
-time = ctdTime[ctdData['PTT']==tID]
-temp = ctdTemp[ctdData['PTT']==tID]
+layers = layers[obsData['PTT']==tID]
+locIndex = locIndex[obsData['PTT']==tID]
+time = obsTime[obsData['PTT']==tID]
+temp = obsTemp[obsData['PTT']==tID]
 
 starttime, endtime=np.amin(time), np.amax(time)+timedelta(hours=1)
 modObj = wtm.waterCTD()
 url = modObj.get_url(starttime, endtime)
 oceantime = netCDF4.Dataset(url).variables['ocean_time']
 modTempAll = netCDF4.Dataset(url).variables['temp']
-modTemp = getModTemp(modTempAll, ctdTime, layers, locIndex, starttime, oceantime)
+modTemp = getModTemp(modTempAll, obsTime, layers, locIndex, starttime, oceantime)
 modTemp = pd.Series(modTemp, index=temp.index)
 
 obsMaxTemp, obsMinTemp = [], []

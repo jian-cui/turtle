@@ -102,62 +102,62 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth
     return modTemp
 #########################################MAIN CODE#####################################################################################################
 FONTSIZE = 25
-ctd = pd.read_csv('ctdWithModTempByDepth.csv') # Extracted from "errorMap.py"
-tf_index = np.where(ctd['TF'].notnull())[0]    # Get the index of good data.
-ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
-ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
-ctdTemp = pd.Series(str2float(ctd['TEMP_VALS'][tf_index]), index=tf_index)
-# ctdTemp = pd.Series(bottom_value(ctd['TEMP_VALS'][tf_index]), index=tf_index)
-ctdDepth = pd.Series(str2float(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
-# ctdDepth = ctd['MAX_DBAR'][tf_index]
-ctdLayer = pd.Series(str2ndlist(ctd['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
-ctdNearestIndex = pd.Series(str2ndlist(ctd['modNearestIndex'][tf_index], bracket=True), index=tf_index)
+obs = pd.read_csv('ctdWithModTempByDepth.csv') # Extracted from "errorMap.py"
+tf_index = np.where(obs['TF'].notnull())[0]    # Get the index of good data.
+obsLon, obsLat = obs['LON'][tf_index], obs['LAT'][tf_index]
+obsTime = pd.Series(np_datetime(obs['END_DATE'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2float(obs['TEMP_VALS'][tf_index]), index=tf_index)
+# obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
+obsDepth = pd.Series(str2float(obs['TEMP_DBAR'][tf_index]), index=tf_index)
+# obsDepth = obs['MAX_DBAR'][tf_index]
+modLayer = pd.Series(str2ndlist(obs['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
+modNearestIndex = pd.Series(str2ndlist(obs['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 # for depth
-tempMod = pd.Series(str2ndlist(ctd['modTempByDepth'][tf_index],bracket=True), index=tf_index)
+tempMod = pd.Series(str2ndlist(obs['modTempByDepth'][tf_index],bracket=True), index=tf_index)
 '''
 # for layers
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-# tempMod = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
+# tempMod = tempObj.watertemp(obsLon.values, obsLat.values, obsDepth.values, obsTime.values, url)
 modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
-tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
+tempMod = getModTemp(modTempAll, obsTime, modLayer, modNearestIndex, starttime, oceantime)
 
 tempObsDeep, tempObsShallow = [], []
 tempModDeep, tempModShallow = [], []
-for i in range(len(ctdTime.values)):
-    for j in range(len(ctdDepth.values[i])):
+for i in range(len(obsTime.values)):
+    for j in range(len(obsDepth.values[i])):
         print i, j
         if tempMod.values[i][j] > 100: continue
-        if ctdDepth.values[i][j] > 50.0:
-            tempObsDeep.append(ctdTemp.values[i][j])
+        if obsDepth.values[i][j] > 50.0:
+            tempObsDeep.append(obsTemp.values[i][j])
             tempModDeep.append(tempMod.values[i][j])
         else:
-            tempObsShallow.append(ctdTemp.values[i][j])
+            tempObsShallow.append(obsTemp.values[i][j])
             tempModShallow.append(tempMod.values[i][j])
 '''
 tempObs1, tempObs2, tempObs3, tempObs4 = [],[],[],[]
 tempMod1, tempMod2, tempMod3, tempMod4 = [],[],[],[]
-for i in range(len(ctdTime.values)):
-    for j in range(len(ctdDepth.values[i])):
+for i in range(len(obsTime.values)):
+    for j in range(len(obsDepth.values[i])):
         print i, j
-        d = ctdDepth.values[i][j]
+        d = obsDepth.values[i][j]
         if tempMod.values[i][j] > 100: continue
         if d<25.0:
-            tempObs1.append(ctdTemp.values[i][j])
+            tempObs1.append(obsTemp.values[i][j])
             tempMod1.append(tempMod.values[i][j])
         elif d>=25.0 and d<50.0:
-            tempObs2.append(ctdTemp.values[i][j])
+            tempObs2.append(obsTemp.values[i][j])
             tempMod2.append(tempMod.values[i][j])
         elif d>=50.0 and d<75:
-            tempObs3.append(ctdTemp.values[i][j])
+            tempObs3.append(obsTemp.values[i][j])
             tempMod3.append(tempMod.values[i][j])
         elif d>=75.0:
-            tempObs4.append(ctdTemp.values[i][j])
+            tempObs4.append(obsTemp.values[i][j])
             tempMod4.append(tempMod.values[i][j])
 rng = ['25.0', '25.0~50.0', '50.0~75.0', '75.0']
 '''
@@ -196,9 +196,9 @@ plt.show()
 '''
 fig = plt.figure()
 ax = fig.gca(projection='3d')
-x = ctdLon
-y = ctdLat
-z = ctdDepth
+x = obsLon
+y = obsLat
+z = obsDepth
 # ax.scatter(x, y, z)
 ax.contour(x, y, z)
 ax.set_zlim([250,0])
