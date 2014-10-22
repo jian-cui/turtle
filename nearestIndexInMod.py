@@ -1,3 +1,6 @@
+'''
+Extract new data file named "ctd_good.csv "with new column "modNearestIndex" and "modDepthLayer"
+'''
 import pandas as pd
 import numpy as np
 import watertempModule as wtm

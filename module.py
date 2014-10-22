@@ -18,6 +18,9 @@ def str2list(s, bracket=False):
     s = [float(i) for i in s]
     return s
 def str2ndlist(arg, bracket=False):
+    '''
+    convert str to nultidimensional arrays
+    '''
     ret = []
     for i in arg:
         a = str2list(i, bracket=bracket)
@@ -30,6 +33,9 @@ def histogramPoints(x, y, bins):
     Hmasked = np.ma.masked_where(H==0, H)
     return xedges, yedges, Hmasked
 def str2float(arg):
+    '''
+    Convert str to float
+    '''
     ret = []
     for i in arg:
         a = i.split(',')

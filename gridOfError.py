@@ -1,3 +1,7 @@
+'''
+Divide the whole area into drifferent girds, and plot the number of observation
+and error in each grid.
+'''
 import netCDF4
 import matplotlib.pyplot as plt
 import numpy as np
@@ -6,6 +10,9 @@ import pandas as pd
 from module import str2ndlist, str2float
 from watertempModule import np_datetime
 def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
+    '''
+    Draw basemap
+    '''
     ax = fig.sca(ax)
     dmap = Basemap(projection='cyl',
                    llcrnrlat=min(latsize)-0.01,
@@ -35,15 +42,18 @@ def intersection(l1, l2):
     y = k1*x + b1
     return x, y
 def whichArea(arg, lst):
+    '''
+    Calculate certain point belongs to which area.
+    '''
     i = len(lst)//2
     if i != 0: 
-        if arg >= lst[i]:#!!!!!!!!!!!!!!!!wrong!!!!!!!!!!!!
+        if arg >= lst[i]:
             r = i + whichArea(arg, lst[i:])
         elif arg < lst[i]:
             r = whichArea(arg, lst[:i])
     else: r = i
     return r
-    
+###########################MAIN CODE###############################################
 url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/hidden/2006_da/his?lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],u[0:1:69911][0:1:35][0:1:81][0:1:128],v[0:1:69911][0:1:35][0:1:80][0:1:129]'
 data = netCDF4.Dataset(url)
 lons, lats = data.variables['lon_rho'], data.variables['lat_rho']
@@ -55,12 +65,11 @@ lonD, latD = lons[0][0], lats[0][0]
 
 ctdData = pd.read_csv('ctdWithModTempByDepth.csv')
 tf_index = np.where(ctdData['TF'].notnull())[0]
-ctdNearestIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
+ctdNearestIndex = pd.Series(str2ndlist(ctdData['modNearestIndex'][tf_index], bracket=True), index=tf_index) # if str has '[' and ']', bracket should be True
 modTemp = pd.Series(str2ndlist(ctdData['modTempByDepth'][tf_index],bracket=True), index=tf_index)
 ctdLon, ctdLat = ctdData['LON'][tf_index], ctdData['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctdData['END_DATE'][tf_index]), index=tf_index)
 ctdTemp = pd.Series(str2float(ctdData['TEMP_VALS'][tf_index]), index=tf_index)
-
 
 data = pd.DataFrame({'lon': ctdLon, 'lat': ctdLat,
                      'obstemp': ctdTemp.values,'modtemp':modTemp,
@@ -118,7 +127,7 @@ for s in range(8):
     n2 = n2 - 0.45
 plt.title('Distribution of Error', fontsize=30)
 
-#########################################################
+##########################Plot whole data distribution##########################
 dataNum = []
 for i in range(9):
     j = [0,0,0,0,0,0,0,0,0,0,0,0,0]
