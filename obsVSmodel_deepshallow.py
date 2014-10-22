@@ -1,3 +1,6 @@
+'''
+draw the correlation of observation and model between deep and shallow(50m)'
+'''
 import watertempModule as wtm
 from  watertempModule import np_datetime, bottom_value
 import pandas as pd
@@ -10,6 +13,9 @@ from module import str2ndlist
 import netCDF4
 
 def str2float(arg):
+    '''
+    turn string to list of float
+    '''
     ret = []
     for i in arg:
         i = i.split(',')
@@ -48,23 +54,10 @@ def closest_num(num, numlist, i=0):
     elif num < numlist[indx]:
         i = closest_num(num, numlist[0:indx+1], i=i)
     return i
-'''
-def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime):
-    ind = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
-    modTemp = []
-    l = len(ctdLayer.index)
-    for i in ctdLayer.index:
-        print i, l
-        timeIndex = closest_num((ctdTime[i]-datetime(2006,01,01)).total_seconds(), oceantime)-ind
-        modTempTime = modTempAll[timeIndex]
-        modTempTime[modTempTime.mask] = False
-        t = [modTempTime[ctdLayer[i][j],ctdNearestIndex[i][0], ctdNearestIndex[i][1]] \
-             for j in range(len(ctdLayer[i]))]
-        modTemp.append(t)
-    modTemp = np.array(modTemp)
-    return modTemp
-'''
 def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime):
+    '''
+    Return model temp based on observation layers(commented out) or depth
+    '''
     indx = closest_num((starttime -datetime(2006,01,01)).total_seconds(), oceantime)
     modTemp = []
     l = len(ctdLayer.index)
@@ -107,16 +100,17 @@ def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth
         modTemp.append(t)
     modTemp = np.array(modTemp)
     return modTemp
+#########################################MAIN CODE#####################################################################################################
 FONTSIZE = 25
-ctd = pd.read_csv('ctdWithModTempByDepth.csv')
-tf_index = np.where(ctd['TF'].notnull())[0]
+ctd = pd.read_csv('ctdWithModTempByDepth.csv') # Extracted from "errorMap.py"
+tf_index = np.where(ctd['TF'].notnull())[0]    # Get the index of good data.
 ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
 ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
 ctdTemp = pd.Series(str2float(ctd['TEMP_VALS'][tf_index]), index=tf_index)
 # ctdTemp = pd.Series(bottom_value(ctd['TEMP_VALS'][tf_index]), index=tf_index)
 ctdDepth = pd.Series(str2float(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
 # ctdDepth = ctd['MAX_DBAR'][tf_index]
-ctdLayer = pd.Series(str2ndlist(ctd['modDepthLayer'][tf_index],bracket=True), index=tf_index)
+ctdLayer = pd.Series(str2ndlist(ctd['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
 ctdNearestIndex = pd.Series(str2ndlist(ctd['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
@@ -132,10 +126,7 @@ modDataAll = tempObj.get_data(url)
 oceantime = modDataAll['ocean_time']
 modTempAll = modDataAll['temp']
 tempMod = getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, starttime, oceantime)
-'''
-# dic = {'tempMod': tempMod, 'tempObs': ctdTemp, depth: ctdDepth}
-# tempObs = pd.DataFrame(dic, index=tf_index)
-'''
+
 tempObsDeep, tempObsShallow = [], []
 tempModDeep, tempModShallow = [], []
 for i in range(len(ctdTime.values)):

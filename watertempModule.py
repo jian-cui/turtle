@@ -151,8 +151,8 @@ class water_roms(water):
         url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/hidden/2006_da/his?ocean_time'
         # url_oceantime = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/2013_da/his_Best/ESPRESSO_Real-Time_v2_History_Best_Available_best.ncd?time'
         self.oceantime = netCDF4.Dataset(url_oceantime).variables['ocean_time'][:]    #if url2006, ocean_time.
-        t1 = (starttime - datetime(2006,01,01)).total_seconds() # for url2006 it's 2006,01,01; for url2013, it's 2013,05,18, and needed to be devide with 3600
-        t2 = (endtime - datetime(2006,01,01)).total_seconds()
+        t1 = (starttime - datetime(2006,1,1)).total_seconds() # for url2006 it's 2006,01,01; for url2013, it's 2013,05,18, and needed to be devide with 3600
+        t2 = (endtime - datetime(2006,1,1)).total_seconds()
         self.index1 = self.closest_num(t1, self.oceantime)
         self.index2 = self.closest_num(t2, self.oceantime)
         # index1 = (starttime - time_r).total_seconds()/60/60
@@ -220,7 +220,7 @@ class water_roms(water):
         print index
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
         layer = np.argmin(abs(depth_layers+depth)) # Be careful, all depth_layers are negative numbers
-        time_index = self.closest_num((time-datetime(2006,01,01)).total_seconds(),self.oceantime) - \
+        time_index = self.closest_num((time-datetime(2006,1,1)).total_seconds(),self.oceantime) - \
             self.index1
         temp = data['temp'][time_index, layer, index[0][0], index[1][0]]
         return temp
@@ -285,7 +285,7 @@ class waterCTD(water_roms):
         depth_layers = data['h'][index[0][0]][index[1][0]]*data['s_rho']
         t = []
         # depth = depth.split(',')
-        time_index = self.closest_num((time-datetime(2006,01,01)).total_seconds(), self.oceantime) -\
+        time_index = self.closest_num((time-datetime(2006,1,1)).total_seconds(), self.oceantime) -\
                 self.index1
         tem = data['temp'][time_index]
         tem[tem.mask] = 10000
@@ -501,7 +501,7 @@ class water_fvcom(water):
             index, = self.nearest_point_index(lon, lat, lons, lats, num=1)
             #layer = closest_num(depth[i], h[index[i]]*siglay[])
             if v == 'v0':
-                indTime = time[i] - datetime(1978, 01, 01)/3600
+                indTime = time[i] - datetime(1978, 1, 1)/3600
                 url = 'http://www.smast.umassd.edu:8080/thredds/dodsC/fvcom/hindcasts/30yr_gom3?temp[indTime:1:indTime+1][layer:1:layer+1][index[0]:1:index[0]+1]'
                 d = netCDF4.Dataset(url).variables['temp'][0,0,0]
             elif v == 'v1':

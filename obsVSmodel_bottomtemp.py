@@ -1,3 +1,6 @@
+'''
+draw the correlation of the deepest observation(we assume it’s the bottom of sea) and appropriate model data.
+'''
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
@@ -226,6 +229,9 @@ def angle_conversion(a):
     a = np.array(a)
     return a/180*np.pi
 def dist(lon1, lat1, lon2, lat2):
+    '''
+    calculate distance between 2 points
+    '''
     R = 6371.004
     lon1, lat1 = angle_conversion(lon1), angle_conversion(lat1)
     lon2, lat2 = angle_conversion(lon2), angle_conversion(lat2)
@@ -233,6 +239,9 @@ def dist(lon1, lat1, lon2, lat2):
                         np.sin(lat1)*np.sin(lat2))
     return l
 def mon_alpha2num(m):
+    '''
+    Return num from name of month
+    '''
     month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     if m in month:
         n = month.index(m)
@@ -299,7 +308,7 @@ def index_by_depth(v, depth):
     i[0] = v[v<depth].index
     i[1] = v[v>=depth].index
     return i
-
+##########################MAIN CODE#############################################
 FONTSIZE = 25
 ctd = pd.read_csv('ctd_good.csv')
 tf_index = np.where(ctd['TF'].notnull())[0] #indices of True data.
