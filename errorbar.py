@@ -41,32 +41,24 @@ def pointLayer(lon, lat, lons, lats, vDepth, h, s_rho):
     return l
 ###################################MAIN CODE###########################################
 FONTSIZE = 25
-ctd = pd.read_csv('ctd_extract_good.csv') # From ctd_extract_TF.py
-tf_index = np.where(ctd['TF'].notnull())[0]
-ctdLon, ctdLat = ctd['LON'][tf_index], ctd['LAT'][tf_index]
-ctdTime = pd.Series(np_datetime(ctd['END_DATE'][tf_index]), index=tf_index)
-ctdTemp = pd.Series(str2float(ctd['TEMP_VALS'][tf_index]), index=tf_index)
-# ctdTemp = pd.Series(bottom_value(ctd['TEMP_VALS'][tf_index]), index=tf_index)
-ctdDepth = pd.Series(str2float(ctd['TEMP_DBAR'][tf_index]), index=tf_index)
+obs = pd.read_csv('ctd_extract_good.csv') # From ctd_extract_TF.py
+tf_index = np.where(obs['TF'].notnull())[0]
+obsLon, obsLat = obs['LON'][tf_index], obs['LAT'][tf_index]
+obsTime = pd.Series(np_datetime(obs['END_DATE'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2float(obs['TEMP_VALS'][tf_index]), index=tf_index)
+# obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
+obsDepth = pd.Series(str2float(obs['TEMP_DBAR'][tf_index]), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-tempMod = tempObj.watertemp(ctdLon.values, ctdLat.values, ctdDepth.values, ctdTime.values, url)
+tempMod = tempObj.watertemp(obsLon.values, obsLat.values, obsDepth.values, obsTime.values, url)
 
-d = {'lon': ctdLon, 'lat': ctdLat, 'obstemp': ctdTemp.values,
-     'modtemp':tempMod, 'depth': ctdDepth, 'time': ctdTime.values}
+d = {'lon': obsLon, 'lat': obsLat, 'obstemp': obsTemp.values,
+     'modtemp':tempMod, 'depth': obsDepth, 'time': obsTime.values}
 a = pd.DataFrame(d, index=tf_index)
-'''
-a = pd.read_csv('temp.csv',index_col=0)
-modTime = []
-for i in a['time']:
-    modTime.append(datetime.strptime(i, '%Y-%m-%d %H:%M:%S'))
-modTime = pd.Series(modTime, index=a.index)
-tDepth = []
-for i in a['']
-'''
+
 ind = [] # the indices needed
 obst = []
 modt = []
