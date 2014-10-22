@@ -1,3 +1,8 @@
+'''
+Extract data file ctd_extract_good.csv, add new column "TF".
+If TF==True, data is good.
+If TF==False, data is bad.
+'''
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,6 +14,9 @@ import sys
 sys.path.append('../moj')
 from conversions import distance
 def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
+    '''
+    Draw basemap
+    '''
     ax = fig.sca(ax)
     dmap = Basemap(projection='cyl',
                    llcrnrlat=min(latsize)-0.01,
@@ -26,6 +34,9 @@ def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
     dmap.fillcontinents(color='grey')
     dmap.drawmapboundary()
 def mon_alpha2num(m):
+    '''
+    Return num from name of month
+    '''
     month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     if m in month:
         n = month.index(m)
@@ -33,6 +44,9 @@ def mon_alpha2num(m):
         raise Exception('Wrong month abbreviation')
     return n+1
 def np_datetime(m):
+    '''
+    Return np.datetime.datetime from string
+    '''
     dt = []
     for i in m:
         year = int(i[5:9])
@@ -49,7 +63,9 @@ def angle_conversion(a):
     a = np.array(a)
     return a/180*np.pi
 def dist(lon1, lat1, lon2, lat2):
-    # calculate the distance of points
+    '''
+    calculate the distance of points
+    '''
     R = 6371.004
     lon1, lat1 = angle_conversion(lon1), angle_conversion(lat1)
     lon2, lat2 = angle_conversion(lon2), angle_conversion(lat2)
