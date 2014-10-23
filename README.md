@@ -1,15 +1,15 @@
 Turtle Project
 ==============
 ###Datafile:
-######1. ctd_extract_good.csv_(ctd_extract_TF.py)_:
+######1. ctd_extract_good.csv _(ctd_extract_TF.py)_:
   - **TF**, get good ctd data, If TF==True, good; If False, bad.
 
-######2. ctd_good.csv_(nearestIndexInMod.py)_:
+######2. ctd_good.csv _(nearestIndexInMod.py)_:
   - **TF**, get good ctd data, If TF==True, good; If False, bad.
   - **modNearestIndex**, return the index of nearest point in model.
   - **modDepthLayer**, return whcih layer in model observation belongs to.
 
-######3. ctdWithModTempByDepth.csv_(ctdWithModTempByDepth.py)_:
+######3. ctdWithModTempByDepth.csv _(ctdWithModTempByDepth.py)_:
   - **TF**, get good ctd data, If TF==True, good; If False, bad.
   - **modNearestIndex**, return the index of nearest point in model.
   - **modDepthLayer**, return whcih layer in model observation belongs to.

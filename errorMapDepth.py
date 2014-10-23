@@ -127,7 +127,7 @@ fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
 plt.suptitle('obsVSmodel, %s' % text, fontsize=25)
-fig.savefig('errorMapDepth4In1.png',dpi=200)
+plt.savefig('errorMapDepth4In1.png',dpi=200)
 '''
 # for layer
 fig = plt.figure()
@@ -163,7 +163,7 @@ plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 # plt.title('error bar that |obstemp-modtemp|>10, based on depth',fontsize=25)
 plt.title('%s(depth)' % text, fontsize=25)
-fig.savefig('errorMapDepthErrorBar.png',dpi=200)
+plt.savefig('errorMapDepthErrorBar.png',dpi=200)
 
 modDepth = []
 for i in dataFinal.index:
@@ -184,6 +184,6 @@ plt.xlabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.title('Ratio of obs error(>10) (depth)', fontsize=25)
-figure.savefig('erorMapDepthRatioeOfError.png', dpi=200)
+plt.savefig('erorMapDepthRatioeOfError.png', dpi=200)
 plt.show()
 

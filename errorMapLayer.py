@@ -67,7 +67,7 @@ for i in a.index:
             obst.append(x)
             modt.append(y)
             dep.append(a['depth'][i][j])
-            layers.append(a['modlayer'])
+            layers.append(a['modlayer'][i][j])
 dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           'lat': a['lat'][ind].values,
                           'time': a['time'][ind].values,
@@ -136,7 +136,7 @@ fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
 plt.suptitle('obsVSmodel, modTemp>obsTemp+10',fontsize=25)
-figure.savefig('errorMapLayer4In1.png', dpi=200)
+plt.savefig('errorMapLayer4In1.png', dpi=200)
 plt.show()
 
 fig = plt.figure()
@@ -150,7 +150,7 @@ for i in dataFinal['layer']:
 plt.bar(x, bar)
 plt.xlabel('Layer', fontsize=25)
 plt.ylabel('Quantity', fontsize=25)
-figure.savefig('errorMapLayerBar.png',dpi=200)
+plt.savefig('errorMapLayerBar.png',dpi=200)
 plt.show()
 
 #draw errorbar based on depth.
@@ -167,5 +167,5 @@ plt.ylim((50, 0))
 plt.ylabel('depth', fontsize=25)
 plt.xlabel('Quantity', fontsize=25)
 plt.title('error bar, based on depth',fontsize=25)
-figure.savefig('errorMapLayerDepthBar.png', dpi=200)
+plt.savefig('errorMapLayerDepthBar.png', dpi=200)
 plt.show()
