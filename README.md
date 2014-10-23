@@ -12,7 +12,7 @@ Turtle Project
   - **modNearestIndex**, return the index of nearest point in model.
   - **modDepthLayer**, return whcih layer in model observation belongs to.
   - **modTempByDepth**, return the temp in model calculated by depth rather than layer.
-===========================================================================================
+---
 ###Module:
 ######1. turtleModule.py
   - **mon_alpha2num** Return num from name of month
@@ -29,7 +29,7 @@ Turtle Project
 ######2. watertempModule.py
   *Note: Using module named [jata](https://github.com/jian-cui/moj/blob/master/jata.py)*
   - This is a module of classes we might use.
-============================================================================================
+---
 ###Code:
 ######1. ctd_extract_TF.py
   - Create new data file "ctd_extract_good.csv" with new column *TF*.(For every ctd position, if it has at least one gps position within 3km and 3h, it's good.)
