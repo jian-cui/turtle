@@ -12,6 +12,7 @@ Turtle Project
   - **modNearestIndex**, return the index of nearest point in model.
   - **modDepthLayer**, return whcih layer in model observation belongs to.
   - **modTempByDepth**, return the temp in model calculated by depth rather than layer.
+
 ---
 ###Module:
 ######1. turtleModule.py
@@ -29,6 +30,7 @@ Turtle Project
 ######2. watertempModule.py
   *Note: Using module named [jata](https://github.com/jian-cui/moj/blob/master/jata.py)*
   - This is a module of classes we might use.
+
 ---
 ###Code:
 ######1. ctd_extract_TF.py
