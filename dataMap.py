@@ -1,35 +1,13 @@
 '''
 Draw data map.
 '''
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import netCDF4
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 import pandas as pd
 import sys
-import netCDF4
-def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
-    '''
-    Draw base map
-    '''
-    ax = fig.sca(ax)
-    dmap = Basemap(projection='cyl',
-                   llcrnrlat=min(latsize)-0.01,
-                   urcrnrlat=max(latsize)+0.01,
-                   llcrnrlon=min(lonsize)-0.01,
-                   urcrnrlon=max(lonsize)+0.01,
-                   resolution='h',ax=ax)
-    dmap.drawparallels(np.arange(int(min(latsize)),
-                                 int(max(latsize))+1,interval_lat),
-                       labels=[1,0,0,0], fontsize=15)
-    dmap.drawmeridians(np.arange(int(min(lonsize))-1,
-                                 int(max(lonsize))+1,interval_lon),
-                       labels=[0,0,0,1], fontsize=15)
-    dmap.drawcoastlines()
-    dmap.fillcontinents(color='grey')
-    dmap.drawmapboundary()
-#####################################MAIN CODE#######################################################################
+from turtleModule import draw_basemap
 FONTSIZE = 25
 while True:
     option = raw_input('Enter number to choose the figure yoy want to get:\n1:GoodCTD 2:RawCTD 3:GoodGPS 4:RawGPS 5:GoodDiag 6:RawDiag 0:quit\n')

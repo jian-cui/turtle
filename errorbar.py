@@ -4,24 +4,11 @@ Draw error bar
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import watertempModule as wtm
 from  watertempModule import np_datetime, bottom_value, dist
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
-def str2float(arg):
-    '''
-    Convert string to float list
-    '''
-    ret = []
-    for i in arg:
-        i = i.split(',')
-        b = np.array([])
-        for j in i:
-            j = float(j)
-            b = np.append(b, j)
-        ret.append(b)
-    ret = np.array(ret)
-    return ret
+import watertempModule as wtm         # A module of classes that using ROMS, FVCOM.
+from turtleModule import str2ndlist, np_datetime, bottom_value, dist
 def nearest_point_index2(lon, lat, lons, lats):
     '''
     Calculate the nearest point.
@@ -45,18 +32,18 @@ obs = pd.read_csv('ctd_extract_good.csv') # From ctd_extract_TF.py
 tf_index = np.where(obs['TF'].notnull())[0]
 obsLon, obsLat = obs['LON'][tf_index], obs['LAT'][tf_index]
 obsTime = pd.Series(np_datetime(obs['END_DATE'][tf_index]), index=tf_index)
-obsTemp = pd.Series(str2float(obs['TEMP_VALS'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2ndlist(obs['TEMP_VALS'][tf_index]), index=tf_index)
 # obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
-obsDepth = pd.Series(str2float(obs['TEMP_DBAR'][tf_index]), index=tf_index)
+obsDepth = pd.Series(str2ndlist(obs['TEMP_DBAR'][tf_index]), index=tf_index)
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013, 12, 13)
 tempObj = wtm.waterCTD()
 url = tempObj.get_url(starttime, endtime)
-tempMod = tempObj.watertemp(obsLon.values, obsLat.values, obsDepth.values, obsTime.values, url)
+modTemp = tempObj.watertemp(obsLon.values, obsLat.values, obsDepth.values, obsTime.values, url)
 
 d = {'lon': obsLon, 'lat': obsLat, 'obstemp': obsTemp.values,
-     'modtemp':tempMod, 'depth': obsDepth, 'time': obsTime.values}
+     'modtemp':modTemp, 'depth': obsDepth, 'time': obsTime.values}
 a = pd.DataFrame(d, index=tf_index)
 
 ind = [] # the indices needed
@@ -82,48 +69,10 @@ dataFinal = pd.DataFrame({'lon': a['lon'][ind].values,
                           })
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
-layer = 4
-'''
+layer = 4                       # the first layer you want to plot
+
 tempObj = wtm.water_roms()
 url = tempObj.get_url(starttime, endtime)
-lon, lat = dataFinal.ix[5]['lon'].values[0], dataFinal.ix[5]['lat'].values[0]
-modTemp, layerDepth = tempObj.layerTemp(lon, lat, depth, url)
-modData = tempObj.get_data(url)
-lons, lats = modData['lon_rho'], modData['lat_rho']
-
-a = abs(np.max(layerDepth))<dataFinal['dep']
-b = dataFinal['dep']<abs(np.min(layerDepth))
-i = np.where(a & b)[0]    #layerDepth is negative
-c = dataFinal['time'][i]>starttime-timedelta(days=10)
-d = dataFinal['time'][i]>starttime+timedelta(days=10)
-j = np.where(c & d)[0]
-indx = dataFinal.ix[i].index[j]
-colorValues = dataFinal['obstemp'][indx]/32
-lonsize = np.amin(lons)-0.1, np.amax(lons)+0.1
-latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
-fig = plt.figure()
-ax = plt.subplot(111)
-dmap = Basemap(projection = 'cyl',
-           llcrnrlat = min(latsize)-0.01,
-           urcrnrlat = max(latsize)+0.01,
-           llcrnrlon = min(lonsize)-0.01,
-           urcrnrlon = max(lonsize)+0.01,
-           resolution = 'h', ax=ax)
-dmap.drawparallels(np.arange(int(min(latsize)), int(max(latsize))+1, 2),
-               labels = [1,0,0,0])
-dmap.drawmeridians(np.arange(int(min(lonsize)), int(max(lonsize))+1, 2),
-               labels = [0,0,0,1])
-dmap.drawcoastlines()
-dmap.fillcontinents(color='grey')
-dmap.drawmapboundary()
-c = plt.contourf(lons, lats, modTemp, extend='both')
-plt.colorbar()
-plt.scatter(dataFinal['lon'][indx], dataFinal['lat'][indx], s=40,c = colorValues.values, cmap=c.cmap)
-plt.show()
-'''
-tempObj = wtm.water_roms()
-url = tempObj.get_url(starttime, endtime)
-
 modData = tempObj.get_data(url)
 h, s_rho = modData['h'], modData['s_rho']
 lons, lats = modData['lon_rho'], modData['lat_rho']

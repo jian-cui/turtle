@@ -5,34 +5,8 @@ import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import watertempModule as wtm
-from  watertempModule import np_datetime, bottom_value, dist
-from mpl_toolkits.basemap import Basemap
-import matplotlib.pyplot as plt
-from module import str2ndlist, str2float
-import netCDF4
+from turleModule import str2ndlist, str2float, closest_num, np_datetime, bottom_value, dist
 
-def closest_num(num, numlist, i=0):
-    '''
-    Return index of the closest number in the list
-    '''
-    index1, index2 = 0, len(numlist)
-    indx = int(index2/2)
-    if not numlist[0] < num < numlist[-1]:
-        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
-    if index2 == 2:
-        l1, l2 = num-numlist[0], numlist[-1]-num
-        if l1 < l2
-            i = i
-        else:
-            i = i+1
-    elif num == numlist[indx]:
-        i = i + indx
-    elif num > numlist[indx]:
-        i = closest_num(num, numlist[indx:],
-                          i=i+indx)
-    elif num < numlist[indx]:
-        i = closest_num(num, numlist[0:indx+1], i=i)
-    return i
 def getModTemp(modTempAll, obsTime, modLayer, modNearestIndex, s_rho, waterDepth, starttime, oceantime):
     '''
     Return model temp based on observation layers or depth

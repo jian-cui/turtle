@@ -3,35 +3,12 @@ draw temp change of one specific turtle data and model data.
 '''
 import numpy as np
 import pandas as pd
-from module import str2ndlist
-from  watertempModule import np_datetime, bottom_value, dist
-import watertempModule as wtm
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from datetime import datetime, timedelta
 import netCDF4
-def closest_num(num, numlist, i=0):
-    '''
-    Return index of the closest number in the list
-    '''
-    index1, index2 = 0, len(numlist)
-    indx = int(index2/2)
-    if not numlist[0] < num < numlist[-1]:
-        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
-    if index2 == 2:
-        l1, l2 = num-numlist[0], numlist[-1]-num
-        if l1 < l2:
-            i = i
-        else:
-            i = i+1
-    elif num == numlist[indx]:
-        i = i + indx
-    elif num > numlist[indx]:
-        i = closest_num(num, numlist[indx:],
-                          i=i+indx)
-    elif num < numlist[indx]:
-        i = closest_num(num, numlist[0:indx+1], i=i)
-    return i
+from turtleModule import str2ndlist, np_datetime, bottom_value, closest_num, dist
+import watertempModule as wtm   # A module of classes that using ROMS, FVCOM.
 def getModTemp(modTempAll, obsTime, obsLayer, obsNearestIndex, starttime, oceantime):
     '''
     Return the mod temp corresponding to observation based on layers, not depth

@@ -2,13 +2,12 @@
 return ratio of the deepest depth
 '''
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
-import watertempModule as wtm
 import netCDF4
 from datetime import datetime, timedelta
-from module import str2ndlist
+from turtleModule import str2ndlist
+import watertempModule as wtm         # A module of classes that using ROMS, FVCOM.
 obsData = pd.read_csv('ctd_good.csv') # From nearestIndexInMod.py
 tf_index = np.where(obsData['TF'].notnull())[0] # Get  index of good data.
 obsLat, obsLon = obsData['LAT'][tf_index], obsData['LON'][tf_index]
@@ -40,7 +39,7 @@ p = obsDeepest/newH
 y = np.arange(0,5,0.1)
 x = np.array([0]*50)
 for i in p:
-    x[int(i*10)]+=1             # multiply 10 is because area (0.0, 0.1) is 1st, (0.8,0.9) is 9th.
+    x[int(i*10)]+=1             # multiply 10 is because area 0.0~0.1 is 1st, 0.8~0.9 is 9th.
 plt.barh(y, x,height=0.08)
 plt.ylim(2.2,0)
 plt.yticks(np.arange(0,5,0.1))

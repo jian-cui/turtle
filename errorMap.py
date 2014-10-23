@@ -4,21 +4,19 @@ plot 4 maps in 1 figure to show which depth has the most errors. Also plot the e
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
-import watertempModule as wtm
-from  watertempModule import np_datetime, bottom_value, dist
 from mpl_toolkits.basemap import Basemap
 import matplotlib.pyplot as plt
-from module import str2ndlist, str2float
 import netCDF4
-
+import watertempModule as wtm   # A module of classes that using ROMS, FVCOM
+from turtleModule import str2ndlist, np_datetime, bottom_value, dist
 FONTSIZE = 25
 obsData = pd.read_csv('ctdWithModTempByDepth.csv') # extracted from ctdWithModTempByDepth.py
 tf_index = np.where(obsData['TF'].notnull())[0]    # get the index of good data
 obsLon, obsLat = obsData['LON'][tf_index], obsData['LAT'][tf_index]
 obsTime = pd.Series(np_datetime(obsData['END_DATE'][tf_index]), index=tf_index)
-obsTemp = pd.Series(str2float(obsData['TEMP_VALS'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2ndlist(obsData['TEMP_VALS'][tf_index]), index=tf_index)
 # obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
-obsDepth = pd.Series(str2float(obsData['TEMP_DBAR'][tf_index]), index=tf_index)
+obsDepth = pd.Series(str2ndlist(obsData['TEMP_DBAR'][tf_index]), index=tf_index)
 modLayer = pd.Series(str2ndlist(obsData['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
 modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
 modTemp = pd.Series(str2ndlist(obsData['modTempByDepth'][tf_index], bracket=True), index=tf_index)
@@ -69,7 +67,7 @@ dataFinal = pd.DataFrame({'lon': data['lon'][ind].values,
 starttime = datetime(2013,07,10)
 endtime = starttime + timedelta(hours=1)
 # layer = 15
-depth = -10
+depth = -10                     # The first depth map wanted to plot
 
 tempObj = wtm.water_roms()
 url = tempObj.get_url(starttime, endtime)

@@ -6,55 +6,13 @@ import pandas as pd
 from datetime import datetime, timedelta
 import netCDF4
 import matplotlib.pyplot as plt
-import sys
-sys.path.append('../moj')
-import jata
-import utilities
-from matplotlib import path
+# import sys
+# sys.path.append('../moj')
+# import utilities
+# from matplotlib import path
 from scipy import stats
-from watertempModule import *
-def mon_alpha2num(m):
-    month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-    if m in month:
-        n = month.index(m)
-    else:
-        raise Exception('Wrong month abbreviation')
-    return n+1
-def np_datetime(m):
-    dt = []
-    for i in m:
-        year = int(i[5:9])
-        month = mon_alpha2num(i[2:5])
-        day =  int(i[0:2])
-        hour = int(i[10:12])
-        minute = int(i[13:15])
-        second = int(i[-2:])
-        temp = datetime(year,month,day,hour=hour,minute=minute,second=second)
-        dt.append(temp)
-    dt = np.array(dt)
-    return dt
-def mean_value(v):
-    v_list = []
-    for i in v:
-        print i, type(i)
-        l = i.split(',')
-        val = [float(i) for i in l]
-        v_mean = np.mean(val)
-        v_list.append(v_mean)
-    return v_list
-def bottom_value(v):
-    v_list = []
-    for i in v:
-        l = i.split(',')
-        val = float(l[-1])
-        v_list.append(val)
-    v_list = np.array(v_list)
-    return v_list
-def index_by_depth(v, depth):
-    i = {}
-    i[0] = v[v<depth].index
-    i[1] = v[v>=depth].index
-    return i
+from watertempModule import water_roms
+from turtleModule import mon_alpha2num, np_datetime, mean_value, bottom_value, index_by_depth
 def show2pic(x1, y1, fontsize):
     FONTSIZE = fontsize
     fig1 = plt.figure()
@@ -117,7 +75,7 @@ obsdata = pd.DataFrame({'depth':obsdepth, 'temp':obstemp, 'lon':obslon,
 
 starttime = datetime(2009, 8, 24)
 endtime = datetime(2013,12 ,13)
-tempobj = water_roms()
+tempobj = wtm.water_roms()
 url = tempobj.get_url(starttime, endtime)
 # temp = tempobj.watertemp(obslon, obslat, obsdepth, obstime, url)
 temp = tempobj.watertemp(obsdata['lon'].values, obsdata['lat'].values,

@@ -1,59 +1,21 @@
 '''
 draw the correlation of observation and model between deep and shallow(50m)'
 '''
-import watertempModule as wtm
-from  watertempModule import np_datetime, bottom_value
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import mpl_toolkits.mplot3d
 from datetime import datetime, timedelta
 from scipy import stats
-from module import str2ndlist
 import netCDF4
+from turtleModule import str2ndlist, np_datetime, bottom_value, closest_num
+import watertempModule as wtm   # A module of classes that using ROMS, FVCOM.
 
-def str2float(arg):
-    '''
-    turn string to list of float
-    '''
-    ret = []
-    for i in arg:
-        i = i.split(',')
-        b = np.array([])
-        for j in i:
-            j = float(j)
-            b = np.append(b, j)
-        ret.append(b)
-    ret = np.array(ret)
-    return ret
 def histogramPoints(x, y, bins):
     H, xedges, yedges = np.histogram2d(x, y, bins=bins)
     H = np.rot90(H)
     H = np.flipud(H)
     Hmasked = np.ma.masked_where(H==0, H)
     return xedges, yedges, Hmasked
-def closest_num(num, numlist, i=0):
-    '''
-    Return index of the closest number in the list
-    '''
-    index1, index2 = 0, len(numlist)
-    indx = int(index2/2)
-    if not numlist[0] < num < numlist[-1]:
-        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
-    if index2 == 2:
-        l1, l2 = num-numlist[0], numlist[-1]-num
-        if l1 < l2:
-            i = i
-        else:
-            i = i+1
-    elif num == numlist[indx]:
-        i = i + indx
-    elif num > numlist[indx]:
-        i = closest_num(num, numlist[indx:],
-                          i=i+indx)
-    elif num < numlist[indx]:
-        i = closest_num(num, numlist[0:indx+1], i=i)
-    return i
 def getModTemp(modTempAll, ctdTime, ctdLayer, ctdNearestIndex, s_rho, waterDepth, starttime, oceantime):
     '''
     Return model temp based on observation layers(commented out) or depth
@@ -106,9 +68,9 @@ obs = pd.read_csv('ctdWithModTempByDepth.csv') # Extracted from "errorMap.py"
 tf_index = np.where(obs['TF'].notnull())[0]    # Get the index of good data.
 obsLon, obsLat = obs['LON'][tf_index], obs['LAT'][tf_index]
 obsTime = pd.Series(np_datetime(obs['END_DATE'][tf_index]), index=tf_index)
-obsTemp = pd.Series(str2float(obs['TEMP_VALS'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2ndlist(obs['TEMP_VALS'][tf_index]), index=tf_index)
 # obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
-obsDepth = pd.Series(str2float(obs['TEMP_DBAR'][tf_index]), index=tf_index)
+obsDepth = pd.Series(str2ndlist(obs['TEMP_DBAR'][tf_index]), index=tf_index)
 # obsDepth = obs['MAX_DBAR'][tf_index]
 modLayer = pd.Series(str2ndlist(obs['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
 modNearestIndex = pd.Series(str2ndlist(obs['modNearestIndex'][tf_index], bracket=True), index=tf_index)

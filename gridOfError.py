@@ -7,40 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.basemap import Basemap
 import pandas as pd
-from module import str2ndlist, str2float
-from watertempModule import np_datetime
-def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
-    '''
-    Draw basemap
-    '''
-    ax = fig.sca(ax)
-    dmap = Basemap(projection='cyl',
-                   llcrnrlat=min(latsize)-0.01,
-                   urcrnrlat=max(latsize)+0.01,
-                   llcrnrlon=min(lonsize)-0.01,
-                   urcrnrlon=max(lonsize)+0.01,
-                   resolution='h',ax=ax)
-    dmap.drawparallels(np.arange(int(min(latsize)),
-                                 int(max(latsize))+1,interval_lat),
-                       labels=[1,0,0,0], linewidth=0)
-    dmap.drawmeridians(np.arange(int(min(lonsize))-1,
-                                 int(max(lonsize))+1,interval_lon),
-                       labels=[0,0,0,1], linewidth=0)
-    dmap.drawcoastlines()
-    dmap.fillcontinents(color='grey')
-    dmap.drawmapboundary()
-def intersection(l1, l2):
-    '''
-    Calculate point of intersection of two lines.
-    line1: y = k1*x + b1
-    line2: y = k2*x + b2
-    x, y = intersection((k1, b1), (k2, b2))
-    '''
-    k1, b1 = l1[0], l1[1]
-    k2, b2 = l2[0], l2[1]
-    x = (b2-b1)/(k1-k2)
-    y = k1*x + b1
-    return x, y
+from turtleModule import str2ndlist, np_datetime, draw_basemap
+
 def whichArea(arg, lst):
     '''
     Calculate certain point belongs to which area.
@@ -69,7 +37,7 @@ modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bra
 modTemp = pd.Series(str2ndlist(obsData['modTempByDepth'][tf_index],bracket=True), index=tf_index)
 obsLon, obsLat = obsData['LON'][tf_index], obsData['LAT'][tf_index]
 obsTime = pd.Series(np_datetime(obsData['END_DATE'][tf_index]), index=tf_index)
-obsTemp = pd.Series(str2float(obsData['TEMP_VALS'][tf_index]), index=tf_index)
+obsTemp = pd.Series(str2ndlist(obsData['TEMP_VALS'][tf_index]), index=tf_index)
 
 data = pd.DataFrame({'lon': obsLon, 'lat': obsLat,
                      'obstemp': obsTemp.values,'modtemp':modTemp,

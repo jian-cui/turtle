@@ -1,4 +1,9 @@
+from datetime import datetime, timedelta
+import numpy as np
 def mon_alpha2num(m):
+    '''
+    Return num from name of Month
+    '''
     month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
     if m in month:
         n = month.index(m)
@@ -6,6 +11,9 @@ def mon_alpha2num(m):
         raise Exception('Wrong month abbreviation')
     return n+1
 def np_datetime(m):
+    '''
+    return np.datettime.datetime from ctd observation 'END_DATE'
+    '''
     dt = []
     for i in m:
         year = int(i[5:9])
@@ -19,6 +27,9 @@ def np_datetime(m):
     dt = np.array(dt)
     return dt
 def mean_value(v):
+    '''
+    return the mean value from ctd observation 'TEMP_VALS'
+    '''
     v_list = []
     for i in v:
         print i, type(i)
@@ -28,6 +39,9 @@ def mean_value(v):
         v_list.append(v_mean)
     return v_list
 def bottom_value(v):
+    '''
+    return the bottom temp from observation 'TEMP_VALS' str
+    '''
     v_list = []
     for i in v:
         l = i.split(',')
@@ -35,33 +49,100 @@ def bottom_value(v):
         v_list.append(val)
     v_list = np.array(v_list)
     return v_list
-def index_lv(v, n):
-    '''
-    return a dict
-    '''
-    index = {}
-    for i in range(n):
-        index[i] = []
-    minv = np.min(v)
-    maxv = np.max(v)+0.1
-    m = (maxv - minv)/float(n)
-    '''
-    for i in range(n):
-        minvv = minv + i*m
-        maxvv = minv + (i+1)*m
-        j = 0
-        for val in v:
-            if val>=maxvv and val<minvv:
-                index[i].append(j)
-    index = np.array(index)
-    return index
-    '''
-    for i in range(len(v)):
-        j = int((v.values[i] - minv)/m) # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        index[j].append(v.index[i])
-    return index
 def index_by_depth(v, depth):
+    '''
+    v should be a list of ocean depth
+    Return a list with 2 part divided with 'depth'
+    '''
     i = {}
     i[0] = v[v<depth].index
     i[1] = v[v>=depth].index
     return i
+def str2list(s, bracket=False):
+    '''
+    a is a string converted from a list
+    a = '[3,5,6,7,8]'
+    b = str2list(a, bracket=True)
+    or
+    a = '3,4,5,6'
+    b = str2list(a)
+    '''
+    if bracket:
+        s = s[1:-1]
+    s = s.split(',')
+    s = [float(i) for i in s]
+    return s
+def str2ndlist(arg, bracket=False):
+    '''
+    convert list full of str to multidimensional arrays
+    '''
+    ret = []
+    for i in arg:
+        a = str2list(i, bracket=bracket)
+        ret.append(a)
+    ret = np.array(ret)
+    return ret
+def angle_conversion(a):
+    a = np.array(a)
+    return a/180*np.pi
+def dist(lon1, lat1, lon2, lat2):
+    R = 6371.004
+    lon1, lat1 = angle_conversion(lon1), angle_conversion(lat1)
+    lon2, lat2 = angle_conversion(lon2), angle_conversion(lat2)
+    l = R*np.arccos(np.cos(lat1)*np.cos(lat2)*np.cos(lon1-lon2)+\
+                        np.sin(lat1)*np.sin(lat2))
+    return l
+def closest_num(num, numlist, i=0):
+    '''
+    Return index of the closest number in the list
+    '''
+    index1, index2 = 0, len(numlist)
+    indx = int(index2/2)
+    if not numlist[0] < num < numlist[-1]:
+        raise Exception('{0} is not in {1}'.format(str(num), str(numlist)))
+    if index2 == 2:
+        l1, l2 = num-numlist[0], numlist[-1]-num
+        if l1 < l2:
+            i = i
+        else:
+            i = i+1
+    elif num == numlist[indx]:
+        i = i + indx
+    elif num > numlist[indx]:
+        i = closest_num(num, numlist[indx:],
+                          i=i+indx)
+    elif num < numlist[indx]:
+        i = closest_num(num, numlist[0:indx+1], i=i)
+    return i
+def draw_basemap(fig, ax, lonsize, latsize, interval_lon=0.5, interval_lat=0.5):
+    '''
+    Draw basemap
+    '''
+    ax = fig.sca(ax)
+    dmap = Basemap(projection='cyl',
+                   llcrnrlat=min(latsize)-0.01,
+                   urcrnrlat=max(latsize)+0.01,
+                   llcrnrlon=min(lonsize)-0.01,
+                   urcrnrlon=max(lonsize)+0.01,
+                   resolution='h',ax=ax)
+    dmap.drawparallels(np.arange(int(min(latsize)),
+                                 int(max(latsize))+1,interval_lat),
+                       labels=[1,0,0,0], linewidth=0)
+    dmap.drawmeridians(np.arange(int(min(lonsize))-1,
+                                 int(max(lonsize))+1,interval_lon),
+                       labels=[0,0,0,1], linewidth=0)
+    dmap.drawcoastlines()
+    dmap.fillcontinents(color='grey')
+    dmap.drawmapboundary()
+def intersection(l1, l2):
+    '''
+    Calculate point of intersection of two lines.
+    line1: y = k1*x + b1
+    line2: y = k2*x + b2
+    x, y = intersection((k1, b1), (k2, b2))
+    '''
+    k1, b1 = l1[0], l1[1]
+    k2, b2 = l2[0], l2[1]
+    x = (b2-b1)/(k1-k2)
+    y = k1*x + b1
+    return x, y
