@@ -31,7 +31,7 @@ Turtle Project
   - **intersection** Calculate point of intersection of 2 lines
 
 ######2. watertempModule.py
-  *Note: Using module named [jata](https://github.com/jian-cui/moj/blob/master/jata.py)*
+    *Note: Using module named [jata](https://github.com/jian-cui/moj/blob/master/jata.py)*
   - This is a module of classes we might use.
 
 ---
