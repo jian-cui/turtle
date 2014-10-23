@@ -52,7 +52,7 @@ def bottom_value(v):
 def index_by_depth(v, depth):
     '''
     v should be a list of ocean depth
-    Return a list with 2 part divided with 'depth'
+    Return a list with 2 part divided by 'depth'
     '''
     i = {}
     i[0] = v[v<depth].index

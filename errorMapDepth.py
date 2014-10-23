@@ -1,5 +1,6 @@
 '''
 plot 4 maps in 1 figure to show which depth has the most errors. Also plot the errorbar and ratio
+Plot error bar and ratio of error.
 '''
 import numpy as np
 import pandas as pd
@@ -10,6 +11,9 @@ import netCDF4
 import watertempModule as wtm   # A module of classes that using ROMS, FVCOM
 from turtleModule import str2ndlist, np_datetime, bottom_value, dist
 FONTSIZE = 25
+criteria = 10                                      # error criteria
+depth = -10                                        # The first depth map wanted to plot
+depth_interval = 25                                # the interval depth of each map.
 obsData = pd.read_csv('ctdWithModTempByDepth.csv') # extracted from ctdWithModTempByDepth.py
 tf_index = np.where(obsData['TF'].notnull())[0]    # get the index of good data
 obsLon, obsLat = obsData['LON'][tf_index], obsData['LAT'][tf_index]
@@ -34,7 +38,7 @@ dep=[]
 text = '|modtemp-obstemp|>10 degC' # remember to keep consistent with "diff" argument below
 for i in data.index:
     diff = abs(data['obstemp'][i] - data['modtemp'][i])
-    indx = np.where(diff > 10)[0]
+    indx = np.where(diff > criteria)[0]
     if not indx.size: continue
     ind.extend([i] * indx.size)
     obst.extend(data['obstemp'][i][indx])
@@ -64,10 +68,9 @@ dataFinal = pd.DataFrame({'lon': data['lon'][ind].values,
                           'dep': np.array(dep),
                           'nearestIndex': modNearestIndex[ind].values
                           })
-starttime = datetime(2013,07,10)
+starttime = datetime(2013,07,10) # the temp contour below ploted is from this time
 endtime = starttime + timedelta(hours=1)
 # layer = 15
-depth = -10                     # The first depth map wanted to plot
 
 tempObj = wtm.water_roms()
 url = tempObj.get_url(starttime, endtime)
@@ -79,20 +82,23 @@ latsize = np.amin(lats)-0.1, np.amax(lats)+0.1
 
 fig = plt.figure()
 ax = []
-i = 0
 for i in range(0, 4):
     ax.append(plt.subplot(2,2,i+1))
     # l = layer+i*6
-    l = depth - i*25
+    l = depth - i*depth_interval
     # lon, lat = dataFinal.ix[5]['lon'], dataFinal.ix[5]['lat']
     # p = np.where(dataFinal['layer']==l)[0]
     a = dataFinal['dep'] < 5-l
     b = dataFinal['dep'] > -5-l
     p = np.where(a & b)[0]      # Get the index of 5m above and 5m below current depth.
+    '''
+    # if use code below, the error map ploted would just show the erors with 20 days of starttime
     m = dataFinal['time'][p]>starttime-timedelta(days=10)
     n = dataFinal['time'][p]<starttime+timedelta(days=10)
     b = np.where(m & n)[0]
     indx = dataFinal.ix[p].index[b]
+    '''
+    indx = dataFinal.ix[p].index
     colorValues = dataFinal['obstemp'][indx]/32
     # modLayerTemp = tempObj.layerTemp(l, url)  #grab new layer temp
     modLayerTemp = tempObj.depthTemp(l, url)
@@ -121,6 +127,7 @@ fig.subplots_adjust(right=0.8)
 cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
 plt.colorbar(c, cax=cbar_ax, ticks=range(0, 32, 4))     #c is the contour of first subplot
 plt.suptitle('obsVSmodel, %s' % text, fontsize=25)
+fig.savefig('errorMapDepth4In1.png',dpi=200)
 '''
 # for layer
 fig = plt.figure()
@@ -156,6 +163,7 @@ plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 # plt.title('error bar that |obstemp-modtemp|>10, based on depth',fontsize=25)
 plt.title('%s(depth)' % text, fontsize=25)
+fig.savefig('errorMapDepthErrorBar.png',dpi=200)
 
 modDepth = []
 for i in dataFinal.index:
@@ -176,5 +184,6 @@ plt.xlabel('Quantity', fontsize=25)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.title('Ratio of obs error(>10) (depth)', fontsize=25)
+figure.savefig('erorMapDepthRatioeOfError.png', dpi=200)
 plt.show()
 
