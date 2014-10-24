@@ -21,9 +21,9 @@ obsTime = pd.Series(np_datetime(obsData['END_DATE'][tf_index]), index=tf_index)
 obsTemp = pd.Series(str2ndlist(obsData['TEMP_VALS'][tf_index]), index=tf_index)
 # obsTemp = pd.Series(bottom_value(obs['TEMP_VALS'][tf_index]), index=tf_index)
 obsDepth = pd.Series(str2ndlist(obsData['TEMP_DBAR'][tf_index]), index=tf_index)
-modLayer = pd.Series(str2ndlist(obsData['modDepthLayer'][tf_index],bracket=True), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
+modLayer = pd.Series(np.array(str2ndlist(obsData['modDepthLayer'][tf_index],bracket=True)), index=tf_index) # bracket is to get rid of symbol "[" and "]" in string
 modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'][tf_index], bracket=True), index=tf_index)
-modTemp = pd.Series(str2ndlist(obsData['modTempByDepth'][tf_index], bracket=True), index=tf_index)
+modTemp = pd.Series(np.array(str2ndlist(obsData['modTempByDepth'][tf_index], bracket=True)), index=tf_index)
 
 data = pd.DataFrame({'lon': obsLon, 'lat': obsLat,
                      'obstemp': obsTemp.values,'modtemp':modTemp,
@@ -37,7 +37,7 @@ lyr = []
 dep=[]
 text = '|modtemp-obstemp|>10 degC' # remember to keep consistent with "diff" argument below
 for i in data.index:
-    diff = abs(data['obstemp'][i] - data['modtemp'][i])
+    diff = abs(np.array(data['obstemp'][i]) - np.array(data['modtemp'][i]))
     indx = np.where(diff > criteria)[0]
     if not indx.size: continue
     ind.extend([i] * indx.size)

@@ -22,6 +22,7 @@ def whichArea(arg, lst):
     else: r = i
     return r
 ###########################MAIN CODE###############################################
+criteria =10                    # criteria for error
 url = 'http://tds.marine.rutgers.edu:8080/thredds/dodsC/roms/espresso/hidden/2006_da/his?lon_rho[0:1:81][0:1:129],lat_rho[0:1:81][0:1:129],u[0:1:69911][0:1:35][0:1:81][0:1:128],v[0:1:69911][0:1:35][0:1:80][0:1:129]'
 data = netCDF4.Dataset(url)
 lons, lats = data.variables['lon_rho'], data.variables['lat_rho']
@@ -54,10 +55,7 @@ for i in range(9):
 fig = plt.figure()
 ax = fig.add_subplot(111)
 draw_basemap(fig, ax, lonsize, latsize)
-plt.plot([lonA, lonB], [latA, latB], 'b-')
-plt.plot([lonD, lonC], [latD, latC], 'b-')
-plt.plot([lonD, lonA], [latD, latA], 'b-')
-plt.plot([lonC, lonB], [latC, latB], 'b-')
+plt.plot([lonA, lonB, lonC, lonD, lonA], [latA, latB, latC, latD, latA], 'b-')
 for i in range(0, 75, 10):      # Here use num smller than 81 because the last grid is too small
     plt.plot([lons[i][0], lons[i][129]], [lats[i][0], lats[i][129]], 'b--')
 for i in range(0, 129, 10):
@@ -67,7 +65,7 @@ r2 = range(0, 129, 10)
 nearestIndex = []
 for i in data.index:
     diff = data['obstemp'][i] - data['modtemp'][i]
-    indx = np.where(abs(diff)>10)[0]
+    indx = np.where(abs(diff)>criteria)[0]
     if not indx.size: continue
     nearestIndex.extend([modNearestIndex[i]] * indx.size)
     '''
@@ -79,8 +77,8 @@ for i in nearestIndex:
     m = whichArea(i[0], r1)
     n = whichArea(i[1], r2)
     errorNum[m][n] += 1
-m1, m2 = 34.05, 39.84           # m1, m2 are the position of Text
-n1, n2 = -75.83, -67.72         # n1, n2 are the position of Text
+m1, m2 = 34.05, 39.84           # m1, m2 are the location to put Text.
+n1, n2 = -75.83, -67.72         # n1, n2 are the location to put Text.
 for s in range(8):
 # a = np.arange(-75.83, -67.72, 0.631)
 # b = np.arange(34.05, 39.84, 0.47)
@@ -94,6 +92,7 @@ for s in range(8):
     n1 = n1 - 0.45
     n2 = n2 - 0.45
 plt.title('Distribution of Error', fontsize=30)
+plt.savefig('gridOfError1.png')
 
 ##########################Plot whole data distribution##########################
 dataNum = []
@@ -103,10 +102,7 @@ for i in range(9):
 fig = plt.figure()
 ax = fig.add_subplot(111)
 draw_basemap(fig, ax, lonsize, latsize)
-plt.plot([lonA, lonB], [latA, latB], 'b-')
-plt.plot([lonD, lonC], [latD, latC], 'b-')
-plt.plot([lonD, lonA], [latD, latA], 'b-')
-plt.plot([lonC, lonB], [latC, latB], 'b-')
+plt.plot([lonA, lonB, lonC, lonD, lonA], [latA, latB, latC, latD, latA], 'b-')
 for i in range(0, 75, 10):      # Here use num smller than 81 because the last grid is too small
     plt.plot([lons[i][0], lons[i][129]], [lats[i][0], lats[i][129]], 'b--')
 for i in range(0, 129, 10):
@@ -135,4 +131,5 @@ for s in range(8):
     n1 = n1 - 0.45
     n2 = n2 - 0.45
 plt.title('Distribution of Data', fontsize=30)
+plt.savefig('gridOdError2.png')
 plt.show()

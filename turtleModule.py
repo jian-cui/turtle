@@ -80,7 +80,7 @@ def str2ndlist(arg, bracket=False):
     for i in arg:
         a = str2list(i, bracket=bracket)
         ret.append(a)
-    ret = np.array(ret)
+    # ret = np.array(ret)
     return ret
 def angle_conversion(a):
     a = np.array(a)

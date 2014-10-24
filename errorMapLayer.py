@@ -30,7 +30,7 @@ def pointLayer(lon, lat, lons, lats, vDepth, h, s_rho):
 ###################################MAIN CODE###########################################
 FONTSIZE = 25
 criteria = 10                   # error criteria
-layer = 4                       # the first layer you want to plot
+layer = 15                       # the first layer you want to plot
 
 obs = pd.read_csv('ctd_good.csv') # From nearestIndexInMod.py
 tf_index = np.where(obs['TF'].notnull())[0]
@@ -99,7 +99,7 @@ fig = plt.figure()
 ax = []
 for i in range(0, 4):
     ax.append(plt.subplot(2,2,i+1))
-    layer = layer+i*4
+    layer = layer+i*6
     a = np.where(dataFinal['layer']==layer)[0] # get index of error for this layer
     '''
     # if use code commented out below, the errorMap ploted would just show the errors with 20 days of starttime.
