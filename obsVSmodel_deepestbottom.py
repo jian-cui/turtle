@@ -38,7 +38,8 @@ def show2pic(x1, y1, fontsize):
     gradient, intercept, r_value, p_value, std_err = stats.linregress(y1[i], x1[i])
     r_squared = r_value**2
     # ax1.set_title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
-    
+    plt.savefig('obsVSmodelDeepestBottom1.png',dpi=200)
+
     fig2 = plt.figure()
     ax2 =  fig2.add_subplot(111)
     nbins = 200
@@ -58,6 +59,7 @@ def show2pic(x1, y1, fontsize):
     plt.plot(x, x, 'r-', linewidth=2)
     plt.plot(x2, y2, 'y-', linewidth=2)
     # plt.title('R-squard: %.4f' % r_squared, fontsize=FONTSIZE)
+    plt.savefig('obsVSmodelDeepestBottom2.png',dpi=200)
     return ax1, ax2, r_squared
 #############################MAIN CODE###########################################
 FONTSIZE = 25

@@ -30,17 +30,18 @@ def smooth(v, e):
     '''
     Smooth the data, get rid of data that changes too much.
     '''
+    a, b, c = v[i-1], v[i], v[i+1]
     for i in range(2, len(v)-1):
-        diff1 = abs(v[i] - v[i+1])
-        diff2 = abs(v[i] - v[i-1])
+        diff1 = abs(b - c)
+        diff2 = abs(b - a)
         if diff2>e:
-            v[i] = v[i-1]
-            print v[i]
+            v[i] = a
     return v
 obsData = pd.read_csv('ctd_good.csv', index_col=0)
 tf_index = np.where(obsData['TF'].notnull())[0]
 obsData = obsData.ix[tf_index]
 id = obsData['PTT'].drop_duplicates().values
+print 'turtle id:', id
 tID = id[6]                    # 0~4, 6,7,8,9, turtle ID.
 layers = pd.Series(str2ndlist(obsData['modDepthLayer'], bracket=True), index=obsData.index) # If str has '[' and ']', bracket should be True.
 modNearestIndex = pd.Series(str2ndlist(obsData['modNearestIndex'].values, bracket=True), index=obsData.index)
@@ -101,6 +102,7 @@ ax.xaxis.set_major_formatter(dateFmt)
 plt.xticks(fontsize=20)
 plt.yticks(fontsize=20)
 plt.title('time series of temp for turtle:{0}'.format(tID), fontsize=25)
+plt.savefig('timeSeries.png', pdi=200)
 plt.show()
 '''
 fig = plt.figure()

@@ -187,6 +187,7 @@ for i in range(4):
     plt.yticks(fontsize=20)
     cbar = plt.colorbar(c)
     cbar.ax.set_ylabel('Counts', fontsize=FONTSIZE)
+plt.savefig('obsVSmodelDeepShallow.png', dpi=200)
 plt.show()
 '''
 #use histogram2d and pcolormesh

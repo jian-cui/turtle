@@ -114,4 +114,5 @@ for i in id:
     ax.set_title('%.2f, %.2f, %s' % (data['LAT'], data['LON'], str(tm)), fontsize=18)
     ax.legend(loc='lower right')
     j+=1
+plt.savefig('profile.png', dpi=200)
 plt.show()

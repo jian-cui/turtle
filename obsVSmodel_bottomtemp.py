@@ -47,6 +47,7 @@ gradient1, intercept1, r_value1, p_value1, std_err1\
 ax1.set_title('Deepest bottom & >50m, R-squard: %.4f' % r_value1**2, fontsize=FONTSIZE)
 ax1.set_ylabel('Model temp', fontsize=FONTSIZE)
 ax1.set_xlabel('OBS temp', fontsize=FONTSIZE)
+plt.savefig('obsVSmodelBottomTemp1.png', dpi=200)
 
 fig2 = plt.figure()
 ax2 = fig2.add_subplot(111)
@@ -60,4 +61,5 @@ gradient2, intercept2, r_value2, p_value2, std_err2\
 ax2.set_title('Deepest bottom & <50m, R-squard: %.4f' % r_value2**2, fontsize=FONTSIZE)
 ax2.set_ylabel('Model temp', fontsize=FONTSIZE)
 ax2.set_xlabel('OBS temp', fontsize=FONTSIZE)
+plt.savefig('obsVSmodelBottomTemp2.png', dpi=200)
 plt.show()
