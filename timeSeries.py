@@ -32,7 +32,7 @@ def smooth(v, e):
     '''
     a, b, c = v[i-1], v[i], v[i+1]
     for i in range(2, len(v)-1):
-        diff1 = abs(b - c)
+        diff1 = abs(b - c) #diff1 is not used
         diff2 = abs(b - a)
         if diff2>e:
             v[i] = a
@@ -63,7 +63,7 @@ modTemp = pd.Series(modTemp, index=temp.index)
 
 obsMaxTemp, obsMinTemp = [], []
 modMaxTemp, modMinTemp = [], []
-for i in temp.index:
+for i in temp.index:  #this loop calculate min & max temperature of each dive
     obsMaxTemp.append(max(temp[i]))
     obsMinTemp.append(min(temp[i]))
     modMaxTemp.append(max(modTemp[i]))
